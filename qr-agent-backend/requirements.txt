@@ -6,3 +6,6 @@ razorpay==1.3.1
 stripe==7.0.0
 psycopg2-binary==2.9.9  # PostgreSQL adapter for Python
 twilio==8.0.0
+marshmallow
+pandas
+qrcode

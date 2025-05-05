@@ -46,7 +46,7 @@ def admin_login():
 
     token = authenticate_admin(data['email'], data['password'])
     if token:
-        return jsonify({"token": token}), 200
+        return jsonify({"org_admin_token": token}), 200
     return jsonify({"error": "Invalid email or password"}), 401
 
 @bp.route('/superadmin/login', methods=['POST'])
@@ -57,7 +57,7 @@ def superadmin_login():
 
     token = authenticate_superadmin(data['email'], data['password'])
     if token:
-        return jsonify({"token": token}), 200
+        return jsonify({"superadmin_token": token}), 200
     return jsonify({"error": "Invalid email or password"}), 401
 
 # --------------------------

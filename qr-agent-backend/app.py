@@ -1,10 +1,11 @@
 import os
+from datetime import timedelta
 from flask import Flask
 from config import Config
 from blueprints import superadmin, organization, kitchen, customer, auth
 from models import db
 from dotenv import load_dotenv
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, jwt_required
 from models.user import User
 from models.organization import Organization
 from models.menu import Menu
@@ -19,6 +20,8 @@ app = Flask(__name__)
 
 load_dotenv()
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Load secret key from .env
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=12)
+app.config['JWT_IDENTITY_CLAIM'] = 'identity'  # Critical for proper handling
 
 app.config.from_object(Config)
 # Initialize JWTManage
@@ -35,6 +38,7 @@ app.register_blueprint(auth.bp)
 
 with app.app_context():
     db.create_all()
+
 
 @app.route('/')
 def health_check():

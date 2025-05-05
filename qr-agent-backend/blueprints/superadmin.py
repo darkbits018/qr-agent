@@ -19,13 +19,27 @@ def create_organization():
     data = request.get_json()
 
     # Validate input
-    if not data.get('name') or not data.get('admin_email'):
-        return jsonify({"error": "Name and admin email required"}), 400
+    required_fields = ['name', 'admin_email', 'admin_password']
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": f"Required fields: {required_fields}"}), 400
 
-    # Check if admin exists
+    # Check if admin exists or create new
     admin = User.query.filter_by(email=data['admin_email']).first()
     if not admin:
-        return jsonify({"error": "Admin user not found"}), 404
+        admin = User(
+            email=data['admin_email'],
+            role='org_admin'  # Default role for new admins
+        )
+        admin.set_password(data['admin_password'])
+        db.session.add(admin)
+        db.session.flush()  # Generate admin.id before commit
+
+    # Verify admin role is valid
+    elif admin.role not in ['superadmin', 'org_admin']:
+        return jsonify({
+            "error": "Email belongs to non-admin user",
+            "solution": "Use a different email or promote user to admin"
+        }), 400
 
     # Create organization
     org = Organization(
@@ -36,7 +50,10 @@ def create_organization():
     db.session.add(org)
     db.session.commit()
 
-    return jsonify(OrganizationSchema().dump(org)), 201
+    return jsonify({
+        "organization": OrganizationSchema().dump(org),
+        "admin_created": not admin  # True if new admin was created
+    }), 201
 
 
 @bp.route('/organizations', methods=['GET'])

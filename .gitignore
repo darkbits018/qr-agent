@@ -1,2 +1,7 @@
 ./qr-agent-backend/.idea
-./qr-agent-backend/.env
+./qr-agent-backend/.env__pycache__/
+**/__pycache__/
+**/*.py[cod]
+**/*.class
+**/.idea/
+**/.vscode/

@@ -22,7 +22,9 @@ class OrganizationSchema(Schema):
     admin_id = fields.Int(dump_only=True)
     is_active = fields.Bool(dump_default=True)
     created_at = fields.DateTime(dump_only=True)
-
+    admin_email = fields.Email(required=True)
+    admin_password = fields.Str(required=True, validate=validate.Length(min=8))
+    admin_role = fields.Str(validate=validate.OneOf(['org_admin']))
 
 # --------------------------
 # Menu System

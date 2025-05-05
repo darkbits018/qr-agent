@@ -47,10 +47,13 @@ def verify_otp(phone, otp):
 
 
 def authenticate_admin(email, password):
-    user = User.query.filter_by(email=email, role='org_admin').first()  # or 'superadmin'
+    user = User.query.filter_by(email=email).filter(User.role.in_(['org_admin', 'superadmin'])).first()
     if user and user.check_password(password):
         return create_access_token(
-            identity={'id': user.id, 'role': user.role},
+            identity={
+                'id': str(user.id),  # Convert to string
+                'role': str(user.role)  # Convert to string
+            },
             expires_delta=timedelta(hours=12)
         )
     return None
@@ -60,7 +63,10 @@ def authenticate_superadmin(email, password):
     user = User.query.filter_by(email=email, role='superadmin').first()
     if user and user.check_password(password):
         return create_access_token(
-            identity={'id': user.id, 'role': user.role},
+            identity={
+                'id': str(user.id),  # Convert to string
+                'role': str(user.role)  # Convert to string
+            },
             expires_delta=timedelta(hours=12)
         )
     return None
