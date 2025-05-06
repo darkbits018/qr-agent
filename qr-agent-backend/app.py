@@ -15,6 +15,7 @@ from models.order import Order
 from models.order_item import OrderItem
 from models.payment import Payment
 from models.feedback import Feedback
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 
@@ -28,6 +29,8 @@ app.config.from_object(Config)
 jwt = JWTManager(app)
 # Initialize database
 db.init_app(app)
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 # Register blueprints
 app.register_blueprint(superadmin.bp)

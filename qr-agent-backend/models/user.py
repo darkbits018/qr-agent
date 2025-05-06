@@ -11,8 +11,7 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)  # 'superadmin', 'org_admin', 'customer'
     email = db.Column(db.String(100), unique=True, nullable=True)
     phone = db.Column(db.String(15), unique=True, nullable=True)
-    password_hash = db.Column(db.String(128))
-    otp = db.Column(db.String(6))
+    password_hash = db.Column(db.String(256))  # Increase the length    otp = db.Column(db.String(6))
     otp_expiry = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
