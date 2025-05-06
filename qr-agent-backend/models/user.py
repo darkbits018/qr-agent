@@ -14,9 +14,10 @@ class User(db.Model):
     password_hash = db.Column(db.String(256))  # Increase the length    otp = db.Column(db.String(6))
     otp_expiry = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)  # Add this line if missing
 
     # Relationships
-    organizations = db.relationship('Organization', backref='admin', lazy=True)  # For org_admins
+    organizations = db.relationship('Organization', backref='organization_admin', lazy=True)  # For org_admins
     orders = db.relationship('Order', backref='customer', lazy=True)  # For customers
 
     def set_password(self, password):

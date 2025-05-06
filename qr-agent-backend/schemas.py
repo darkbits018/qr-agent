@@ -19,12 +19,13 @@ class UserSchema(Schema):
 class OrganizationSchema(Schema):
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
-    admin_id = fields.Int(dump_only=True)
+    admin_id = fields.Int(required=True)  # Explicitly include
     is_active = fields.Bool(dump_default=True)
     created_at = fields.DateTime(dump_only=True)
     admin_email = fields.Email(required=True)
     admin_password = fields.Str(required=True, validate=validate.Length(min=8))
     admin_role = fields.Str(validate=validate.OneOf(['org_admin']))
+    admin = fields.Nested('UserSchema', only=('id', 'email'))
 
 # --------------------------
 # Menu System
@@ -99,3 +100,8 @@ class FeedbackSchema(Schema):
     rating = fields.Int(validate=validate.Range(min=1, max=5))
     comment = fields.Str(validate=validate.Length(max=500))
     created_at = fields.DateTime(dump_only=True)
+
+class AdminLoginSchema(Schema):
+    email = fields.Email(required=True)
+    password = fields.Str(required=True)
+    organization_id = fields.Int(required=True)

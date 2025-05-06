@@ -7,7 +7,7 @@ class Organization(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # org_admin user
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Changed to nullable=False
     subscription_plan = db.Column(db.String(50))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -15,3 +15,4 @@ class Organization(db.Model):
     # Relationships
     menus = db.relationship('Menu', backref='organization', lazy=True)
     tables = db.relationship('Table', backref='organization', lazy=True)
+    admin = db.relationship('User', foreign_keys=[admin_id], backref='admin_of_organizations')

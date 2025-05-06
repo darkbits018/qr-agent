@@ -16,6 +16,7 @@ from models.order_item import OrderItem
 from models.payment import Payment
 from models.feedback import Feedback
 from flask_migrate import Migrate
+from blueprints.menu import bp as menu_bp
 
 app = Flask(__name__)
 
@@ -38,6 +39,7 @@ app.register_blueprint(organization.bp)
 app.register_blueprint(kitchen.bp)
 app.register_blueprint(customer.bp)
 app.register_blueprint(auth.bp)
+app.register_blueprint(menu_bp)
 
 with app.app_context():
     db.create_all()

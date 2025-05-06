@@ -6,6 +6,7 @@ import random
 from flask_jwt_extended import create_access_token
 from models import User
 from datetime import timedelta
+from models import Organization
 
 client = Client(Config.TWILIO_ACCOUNT_SID, Config.TWILIO_AUTH_TOKEN)
 
@@ -49,10 +50,15 @@ def verify_otp(phone, otp):
 def authenticate_admin(email, password):
     user = User.query.filter_by(email=email).filter(User.role.in_(['org_admin', 'superadmin'])).first()
     if user and user.check_password(password):
+        # Fetch the organization_id from the Organization model
+        organization = Organization.query.filter_by(admin_id=user.id).first()
+        organization_id = organization.id if organization else None
+
         return create_access_token(
             identity={
                 'id': str(user.id),  # Convert to string
-                'role': str(user.role)  # Convert to string
+                'role': str(user.role),  # Convert to string
+                'organization_id': str(organization_id) if organization_id else None
             },
             expires_delta=timedelta(hours=12)
         )

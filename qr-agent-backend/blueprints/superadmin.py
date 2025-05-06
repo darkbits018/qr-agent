@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Organization, User
 from schemas import OrganizationSchema, UserSchema
+import re
 
 bp = Blueprint('superadmin', __name__, url_prefix='/api/superadmin')
 
@@ -12,48 +13,73 @@ bp = Blueprint('superadmin', __name__, url_prefix='/api/superadmin')
 @bp.route('/organizations', methods=['POST'])
 @jwt_required()
 def create_organization():
-    # Verify superadmin role
-    if get_jwt_identity()['role'] != 'superadmin':
+    """
+    Create a new organization with admin
+    """
+    # Verify superadmin
+    if get_jwt_identity().get('role') != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
     data = request.get_json()
 
     # Validate input
     required_fields = ['name', 'admin_email', 'admin_password']
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": f"Required fields: {required_fields}"}), 400
-
-    # Check if admin exists or create new
-    admin = User.query.filter_by(email=data['admin_email']).first()
-    if not admin:
-        admin = User(
-            email=data['admin_email'],
-            role='org_admin'  # Default role for new admins
-        )
-        admin.set_password(data['admin_password'])
-        db.session.add(admin)
-        db.session.flush()  # Generate admin.id before commit
-
-    # Verify admin role is valid
-    elif admin.role not in ['superadmin', 'org_admin']:
+    if missing := [field for field in required_fields if field not in data]:
         return jsonify({
-            "error": "Email belongs to non-admin user",
-            "solution": "Use a different email or promote user to admin"
+            "error": "Missing required fields",
+            "missing": missing
         }), 400
 
-    # Create organization
-    org = Organization(
-        name=data['name'],
-        admin_id=admin.id,
-        is_active=True
-    )
-    db.session.add(org)
-    db.session.commit()
+    # Password validation
+    if len(data['admin_password']) < 8:
+        return jsonify({
+            "error": "Password must be at least 8 characters"
+        }), 400
 
-    return jsonify({
-        "organization": OrganizationSchema().dump(org),
-        "admin_created": not admin  # True if new admin was created
-    }), 201
+    # Email validation
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", data['admin_email']):
+        return jsonify({
+            "error": "Invalid email format"
+        }), 400
+
+    # Check for existing user
+    admin = User.query.filter_by(email=data['admin_email']).first()
+    admin_created = False
+
+    try:
+        # Create admin if needed
+        if not admin:
+            admin = User(
+                email=data['admin_email'],
+                role='org_admin',
+                is_active=True
+            )
+            admin.set_password(data['admin_password'])
+            db.session.add(admin)
+            db.session.flush()  # Critical - generates ID without commit
+
+        # Create organization
+        org = Organization(
+            name=data['name'],
+            admin_id=admin.id,  # Use the flushed ID
+            is_active=True
+        )
+        db.session.add(org)
+        db.session.commit()  # Single atomic commit
+
+        return jsonify({
+            "message": "Organization created successfully",
+            "organization": OrganizationSchema().dump(org),
+            "admin": {
+                "id": admin.id,
+                "email": admin.email,
+                "new_account": admin_created
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @bp.route('/organizations', methods=['GET'])
@@ -122,8 +148,9 @@ def create_admin():
         return jsonify({"error": "Forbidden"}), 403
 
     data = request.get_json()
-    if not data.get('email') or not data.get('role'):
-        return jsonify({"error": "Email and role required"}), 400
+    required_fields = ['email', 'role', 'password']
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": f"Required fields: {required_fields}"}), 400
 
     if data['role'] not in ['superadmin', 'org_admin']:
         return jsonify({"error": "Invalid role"}), 400
@@ -136,10 +163,22 @@ def create_admin():
     # Create admin user
     admin = User(
         email=data['email'],
-        role=data['role'],
-        is_active=True
+        role=data['role']
     )
-    admin.set_password("temporary_password")  # Force password reset
+    admin.set_password(data['password'])
+
+    # Associate with organization if role is org_admin
+    if data['role'] == 'org_admin':
+        if 'organization_id' not in data:
+            return jsonify({"error": "organization_id is required for org_admin"}), 400
+
+        organization = Organization.query.get(data['organization_id'])
+        if not organization:
+            return jsonify({"error": "Invalid organization_id"}), 400
+
+        organization.admin_id = admin.id
+        db.session.add(organization)
+
     db.session.add(admin)
     db.session.commit()
 
@@ -148,15 +187,15 @@ def create_admin():
 
 @bp.route('/admins', methods=['GET'])
 @jwt_required()
-def list_admins():
+def get_all_admins():
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
-    role_filter = request.args.get('role')
+    role = request.args.get('role')
     query = User.query.filter(User.role.in_(['superadmin', 'org_admin']))
 
-    if role_filter:
-        query = query.filter_by(role=role_filter)
+    if role:
+        query = query.filter_by(role=role)
 
     admins = query.all()
     return jsonify(UserSchema(many=True).dump(admins)), 200
