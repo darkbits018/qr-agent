@@ -27,6 +27,7 @@ class OrganizationSchema(Schema):
     admin_role = fields.Str(validate=validate.OneOf(['org_admin']))
     admin = fields.Nested('UserSchema', only=('id', 'email'))
 
+
 # --------------------------
 # Menu System
 # --------------------------
@@ -43,9 +44,14 @@ class MenuItemSchema(Schema):
     description = fields.Str()
     price = fields.Float(required=True, validate=validate.Range(min=0))
     image_url = fields.Url()
-    menu_id = fields.Int(required=True)
-    category = fields.Str(validate=validate.OneOf(['starter', 'main', 'dessert', 'beverage']))
-    is_vegetarian = fields.Bool(dump_default=False)
+    organization_id = fields.Int(required=True)
+    category = fields.Str(validate=validate.OneOf(['appetizer', 'main', 'dessert', 'beverage']))
+    dietary_preference = fields.Str(validate=validate.OneOf([
+        'vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'none'
+    ]))
+    available_times = fields.Str(validate=validate.OneOf([
+        'breakfast', 'lunch', 'dinner', 'all-day'
+    ]))
     is_available = fields.Bool(dump_default=True)
 
 
@@ -100,6 +106,7 @@ class FeedbackSchema(Schema):
     rating = fields.Int(validate=validate.Range(min=1, max=5))
     comment = fields.Str(validate=validate.Length(max=500))
     created_at = fields.DateTime(dump_only=True)
+
 
 class AdminLoginSchema(Schema):
     email = fields.Email(required=True)

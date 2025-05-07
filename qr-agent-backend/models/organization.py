@@ -13,6 +13,5 @@ class Organization(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    menus = db.relationship('Menu', backref='organization', lazy=True)
     tables = db.relationship('Table', backref='organization', lazy=True)
     admin = db.relationship('User', foreign_keys=[admin_id], backref='admin_of_organizations')

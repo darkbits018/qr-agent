@@ -6,7 +6,6 @@ db = SQLAlchemy()
 # Import models AFTER db is created (avoid circular imports)
 from .user import User
 from .organization import Organization
-from .menu import Menu
 from .menu_item import MenuItem
 from .order import Order
 from .order_item import OrderItem
