@@ -18,6 +18,41 @@ bp = Blueprint('organization', __name__, url_prefix='/api/organizations')
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def create_menu_item():
+    """
+    Create a Menu Item
+    ---
+    tags:
+      - Menu Management
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Pizza"
+              price:
+                type: number
+                example: 9.99
+              category:
+                type: string
+                example: "Main Course"
+              dietary_preference:
+                type: string
+                example: "Vegetarian"
+              available_times:
+                type: string
+                example: "all-day"
+    responses:
+      201:
+        description: Menu item created successfully
+      400:
+        description: Invalid input
+      403:
+        description: Unauthorized
+    """
     org_id = get_jwt_identity()['org_id']
     data = request.get_json()
 
@@ -38,6 +73,23 @@ def create_menu_item():
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def get_menu_items():
+    """
+    Get Menu Items
+    ---
+    tags:
+      - Menu Management
+    responses:
+      200:
+        description: List of menu items
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MenuItem'
+      403:
+        description: Unauthorized
+    """
     org_id = get_jwt_identity()['org_id']
     items = MenuItem.query.filter_by(organization_id=org_id).all()
     return jsonify(MenuItemSchema(many=True).dump(items)), 200
@@ -47,6 +99,51 @@ def get_menu_items():
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def manage_menu_item(item_id):
+    """
+    Manage Menu Item
+    ---
+    tags:
+      - Menu Management
+    parameters:
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Updated Pizza"
+              price:
+                type: number
+                example: 12.99
+              category:
+                type: string
+                example: "Main Course"
+              dietary_preference:
+                type: string
+                example: "Vegan"
+              available_times:
+                type: string
+                example: "dinner"
+              is_available:
+                type: boolean
+                example: true
+    responses:
+      200:
+        description: Menu item updated or deleted successfully
+      403:
+        description: Unauthorized
+      404:
+        description: Menu item not found
+    """
     org_id = get_jwt_identity()['org_id']
     item = MenuItem.query.filter_by(id=item_id, organization_id=org_id).first_or_404()
 
@@ -72,6 +169,29 @@ def manage_menu_item(item_id):
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def bulk_import_items():
+    """
+    Bulk Import Menu Items
+    ---
+    tags:
+      - Menu Management
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      201:
+        description: Menu items imported successfully
+      400:
+        description: Invalid file or format
+      403:
+        description: Unauthorized
+    """
     org_id = get_jwt_identity()['org_id']
 
     if 'file' not in request.files:
@@ -122,6 +242,36 @@ def bulk_import_items():
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def bulk_create_tables(org_id):
+    """
+    Bulk Create Tables
+    ---
+    tags:
+      - Table Management
+    parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+                example: 5
+    responses:
+      201:
+        description: Tables created successfully
+      400:
+        description: Invalid input
+      403:
+        description: Unauthorized
+    """
     count = request.json.get('count', 1)  # Default 1 table
     tables = []
 
@@ -147,6 +297,32 @@ def bulk_create_tables(org_id):
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def manage_table(org_id, table_id):
+    """
+    Manage Table
+    ---
+    tags:
+      - Table Management
+    parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+      - name: table_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 10
+    responses:
+      200:
+        description: Table retrieved or deleted successfully
+      403:
+        description: Unauthorized
+      404:
+        description: Table not found
+    """
     table = Table.query.filter_by(id=table_id, organization_id=org_id).first_or_404()
 
     if request.method == 'GET':

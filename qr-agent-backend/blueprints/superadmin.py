@@ -14,7 +14,35 @@ bp = Blueprint('superadmin', __name__, url_prefix='/api/superadmin')
 @jwt_required()
 def create_organization():
     """
-    Create a new organization with admin
+    Create Organization
+    ---
+    tags:
+      - Organization Management
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Tech Corp"
+              admin_email:
+                type: string
+                example: "admin@techcorp.com"
+              admin_password:
+                type: string
+                example: "securepassword"
+    responses:
+      201:
+        description: Organization created successfully
+      400:
+        description: Missing or invalid input
+      403:
+        description: Forbidden
+      500:
+        description: Internal server error
     """
     # Verify superadmin
     if get_jwt_identity().get('role') != 'superadmin':
@@ -85,6 +113,30 @@ def create_organization():
 @bp.route('/organizations', methods=['GET'])
 @jwt_required()
 def list_organizations():
+    """
+    List Organizations
+    ---
+    tags:
+      - Organization Management
+    parameters:
+      - name: is_active
+        in: query
+        required: false
+        schema:
+          type: boolean
+          example: true
+    responses:
+      200:
+        description: List of organizations
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Organization'
+      403:
+        description: Forbidden
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -101,6 +153,30 @@ def list_organizations():
 @bp.route('/organizations/<int:org_id>', methods=['GET'])
 @jwt_required()
 def get_organization(org_id):
+    """
+    Get Organization
+    ---
+    tags:
+      - Organization Management
+    parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    responses:
+      200:
+        description: Organization details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      403:
+        description: Forbidden
+      404:
+        description: Organization not found
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -111,6 +187,39 @@ def get_organization(org_id):
 @bp.route('/organizations/<int:org_id>', methods=['PUT'])
 @jwt_required()
 def update_organization(org_id):
+    """
+    Update Organization
+    ---
+    tags:
+      - Organization Management
+    parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Updated Tech Corp"
+              is_active:
+                type: boolean
+                example: false
+    responses:
+      200:
+        description: Organization updated successfully
+      403:
+        description: Forbidden
+      404:
+        description: Organization not found
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -129,6 +238,26 @@ def update_organization(org_id):
 @bp.route('/organizations/<int:org_id>', methods=['DELETE'])
 @jwt_required()
 def deactivate_organization(org_id):
+    """
+    Deactivate Organization
+    ---
+    tags:
+      - Organization Management
+    parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    responses:
+      200:
+        description: Organization deactivated successfully
+      403:
+        description: Forbidden
+      404:
+        description: Organization not found
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -144,6 +273,38 @@ def deactivate_organization(org_id):
 @bp.route('/admins', methods=['POST'])
 @jwt_required()
 def create_admin():
+    """
+    Create Admin
+    ---
+    tags:
+      - Admin Management
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "admin@organization.com"
+              role:
+                type: string
+                example: "org_admin"
+              password:
+                type: string
+                example: "securepassword"
+              organization_id:
+                type: integer
+                example: 1
+    responses:
+      201:
+        description: Admin created successfully
+      400:
+        description: Missing or invalid input
+      403:
+        description: Forbidden
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -188,6 +349,30 @@ def create_admin():
 @bp.route('/admins', methods=['GET'])
 @jwt_required()
 def get_all_admins():
+    """
+    Get All Admins
+    ---
+    tags:
+      - Admin Management
+    parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          example: "org_admin"
+    responses:
+      200:
+        description: List of admins
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Admin'
+      403:
+        description: Forbidden
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -204,6 +389,41 @@ def get_all_admins():
 @bp.route('/admins/<int:admin_id>', methods=['PUT'])
 @jwt_required()
 def update_admin(admin_id):
+    """
+    Update Admin
+    ---
+    tags:
+      - Admin Management
+    parameters:
+      - name: admin_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              role:
+                type: string
+                example: "superadmin"
+              is_active:
+                type: boolean
+                example: true
+    responses:
+      200:
+        description: Admin updated successfully
+      400:
+        description: Invalid input
+      403:
+        description: Forbidden
+      404:
+        description: Admin not found
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 
@@ -230,6 +450,26 @@ def update_admin(admin_id):
 @bp.route('/admins/<int:admin_id>', methods=['DELETE'])
 @jwt_required()
 def deactivate_admin(admin_id):
+    """
+    Deactivate Admin
+    ---
+    tags:
+      - Admin Management
+    parameters:
+      - name: admin_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          example: 1
+    responses:
+      200:
+        description: Admin deactivated successfully
+      403:
+        description: Forbidden
+      404:
+        description: Admin not found
+    """
     if get_jwt_identity()['role'] != 'superadmin':
         return jsonify({"error": "Forbidden"}), 403
 

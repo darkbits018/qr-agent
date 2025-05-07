@@ -3,6 +3,7 @@ from itsdangerous import URLSafeTimedSerializer
 from models import db, User
 from services.auth import send_otp, verify_otp, authenticate_admin, authenticate_superadmin
 from flask_jwt_extended import create_access_token
+
 bp = Blueprint('auth', __name__)
 
 
@@ -11,6 +12,30 @@ bp = Blueprint('auth', __name__)
 # --------------------------
 @bp.route('/request-otp', methods=['POST'])
 def request_otp():
+    """
+       Request an OTP
+       ---
+       tags:
+         - Authentication
+       parameters:
+         - name: body
+           in: body
+           required: true
+           schema:
+             type: object
+             properties:
+               phone:
+                 type: string
+                 example: "1234567890"
+       responses:
+         200:
+           description: OTP sent successfully
+         400:
+           description: Phone number required
+         500:
+           description: Failed to send OTP
+       """
+
     phone = request.json.get('phone')
     if not phone:
         return jsonify({"error": "Phone number required"}), 400
@@ -22,6 +47,33 @@ def request_otp():
 
 @bp.route('/verify-otp', methods=['POST'])
 def verify_otp_route():
+    """
+        Verify OTP
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: "1234567890"
+                otp:
+                  type: string
+                  example: "123456"
+        responses:
+          200:
+            description: OTP verified successfully, returns a token
+          400:
+            description: Phone and OTP required
+          401:
+            description: Invalid OTP
+        """
+
     phone = request.json.get('phone')
     otp = request.json.get('otp')
 
@@ -40,6 +92,32 @@ def verify_otp_route():
 # --------------------------
 @bp.route('/org-admin/login', methods=['POST'])
 def admin_login():
+    """
+        Admin Login
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "admin@example.com"
+                password:
+                  type: string
+                  example: "password123"
+        responses:
+          200:
+            description: Returns an org admin token
+          400:
+            description: Email and password required
+          401:
+            description: Invalid email or password
+        """
     data = request.get_json()
     if not data or 'email' not in data or 'password' not in data:
         return jsonify({"error": "Email and password required"}), 400
@@ -49,8 +127,35 @@ def admin_login():
         return jsonify({"org_admin_token": token}), 200
     return jsonify({"error": "Invalid email or password"}), 401
 
+
 @bp.route('/superadmin/login', methods=['POST'])
 def superadmin_login():
+    """
+        Superadmin Login
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "superadmin@example.com"
+                password:
+                  type: string
+                  example: "password123"
+        responses:
+          200:
+            description: Returns a superadmin token
+          400:
+            description: Email and password required
+          401:
+            description: Invalid email or password
+        """
     data = request.get_json()
     if not data or 'email' not in data or 'password' not in data:
         return jsonify({"error": "Email and password required"}), 400
@@ -60,11 +165,34 @@ def superadmin_login():
         return jsonify({"superadmin_token": token}), 200
     return jsonify({"error": "Invalid email or password"}), 401
 
+
 # --------------------------
 # Password Reset Flow
 # --------------------------
 @bp.route('/admin/request-password-reset', methods=['POST'])
 def request_password_reset():
+    # request_password_reset
+    """
+    Request Password Reset
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: "admin@example.com"
+    responses:
+      200:
+        description: If email exists, reset link sent
+      400:
+        description: Email required
+    """
     email = request.json.get('email')
     if not email:
         return jsonify({"error": "Email required"}), 400
@@ -83,6 +211,32 @@ def request_password_reset():
 
 @bp.route('/admin/reset-password', methods=['POST'])
 def reset_password():
+    """
+       Reset Password
+       ---
+       tags:
+         - Authentication
+       parameters:
+         - name: body
+           in: body
+           required: true
+           schema:
+             type: object
+             properties:
+               token:
+                 type: string
+                 example: "your_token_here"
+               new_password:
+                 type: string
+                 example: "newpassword123"
+       responses:
+         200:
+           description: Password updated successfully
+         400:
+           description: Token and new password required or invalid/expired token
+         404:
+           description: User not found
+       """
     token = request.json.get('token')
     new_password = request.json.get('new_password')
 
