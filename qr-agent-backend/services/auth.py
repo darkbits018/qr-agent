@@ -54,11 +54,15 @@ def authenticate_admin(email, password):
         organization = Organization.query.filter_by(admin_id=user.id).first()
         organization_id = organization.id if organization else None
 
+        # Debugging: Print the organization_id
+        print(f"Organization ID: {organization_id}")
+
+        # Ensure organization_id is included in the token
         return create_access_token(
             identity={
                 'id': str(user.id),  # Convert to string
                 'role': str(user.role),  # Convert to string
-                'organization_id': str(organization_id) if organization_id else None
+                'org_id': str(organization_id) if organization_id else None
             },
             expires_delta=timedelta(hours=12)
         )
