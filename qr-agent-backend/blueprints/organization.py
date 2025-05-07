@@ -64,6 +64,7 @@ def manage_menu_item(item_id):
         db.session.delete(item)
         db.session.commit()
         return jsonify(message="Menu item deleted"), 200
+    return None
 
 
 # Bulk import menu items
@@ -82,20 +83,36 @@ def bulk_import_items():
 
     try:
         df = pd.read_excel(file)
+
+        # Ensure column names match exactly with your database
+        required_columns = ['name', 'description', 'price', 'image_url',
+                            'category', 'dietary_preference', 'available_times',
+                            'is_vegetarian', 'is_available']
+
+        if not all(col in df.columns for col in required_columns):
+            return jsonify(error="Excel columns don't match required format"), 400
+
         for _, row in df.iterrows():
             item = MenuItem(
                 name=row['name'],
-                price=row['price'],
-                organization_id=org_id,
-                category=row.get('category'),
-                dietary_preference=row.get('dietary_preference'),
-                available_times=row.get('available_times', 'all-day')
+                description=row['description'],
+                price=float(row['price']),  # Explicit conversion to float
+                image_url=row['image_url'],
+                category=row['category'],
+                dietary_preference=row['dietary_preference'] if pd.notna(row['dietary_preference']) else None,
+                available_times=row['available_times'],
+                is_vegetarian=bool(row['is_vegetarian']),
+                is_available=bool(row['is_available']),
+                organization_id=org_id
             )
             db.session.add(item)
+
         db.session.commit()
         return jsonify(message=f"{len(df)} items imported"), 201
+
     except Exception as e:
-        return jsonify(error=str(e)), 400
+        db.session.rollback()
+        return jsonify(error=f"Import failed: {str(e)}"), 400
 
 
 # --------------------------
