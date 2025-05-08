@@ -9,3 +9,6 @@ twilio==8.0.0
 marshmallow
 pandas
 qrcode
+pytest
+requests
+allure-pytest

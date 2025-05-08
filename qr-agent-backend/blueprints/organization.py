@@ -6,7 +6,7 @@ import pandas as pd
 import qrcode
 import os
 from io import BytesIO
-from .utils import admin_required, save_qr_code
+from .utils import admin_required, generate_qr_code
 
 bp = Blueprint('organization', __name__, url_prefix='/api/organizations')
 
@@ -238,103 +238,51 @@ def bulk_import_items():
 # --------------------------
 # Table/QR Management
 # --------------------------
-@bp.route('/<int:org_id>/tables/bulk', methods=['POST'])
+# In qr-agent-backend/blueprints/organization.py
+@bp.route('/tables/bulk', methods=['POST'])
 @jwt_required()
 @admin_required(roles=['org_admin'])
-def bulk_create_tables(org_id):
-    """
-    Bulk Create Tables
-    ---
-    tags:
-      - Table Management
-    parameters:
-      - name: org_id
-        in: path
-        required: true
-        schema:
-          type: integer
-          example: 1
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              count:
-                type: integer
-                example: 5
-    responses:
-      201:
-        description: Tables created successfully
-      400:
-        description: Invalid input
-      403:
-        description: Unauthorized
-    """
-    count = request.json.get('count', 1)  # Default 1 table
-    tables = []
+def bulk_create_tables():
+    current_user = get_jwt_identity()
+    org_id = current_user['org_id']
+    count = request.json.get('count', 1)
 
+    tables = []
     for i in range(1, count + 1):
+        # Generate QR code with dynamic URL
+        qr_url = generate_qr_code(
+            f"https://yourdomain.com/menu?org_id={org_id}&table_id={i}"
+        )
+
         table = Table(
             number=f"Table {i}",
-            qr_code=f"org_{org_id}_table_{i}",
+            qr_code_url=qr_url,
             organization_id=org_id
         )
-        # Generate QR image
-        qr = qrcode.make(f"https://yourdomain.com/menu?table_id={table.id}")
-        qr_path = f"static/qr_codes/table_{table.id}.png"
-        save_qr_code(qr, qr_path)  # Using our new utility function
-
         db.session.add(table)
         tables.append(table)
 
     db.session.commit()
-    return jsonify(TableSchema(many=True).dump(tables)), 201
+
+    return jsonify([{
+        "id": table.id,
+        "number": table.number,
+        "qr_code_url": table.qr_code_url,
+        "organization_id": table.organization_id
+    } for table in tables]), 201
 
 
-@bp.route('/<int:org_id>/tables/<int:table_id>', methods=['GET', 'DELETE'])
+@bp.route('/tables', methods=['GET'])
 @jwt_required()
 @admin_required(roles=['org_admin'])
-def manage_table(org_id, table_id):
-    """
-    Manage Table
-    ---
-    tags:
-      - Table Management
-    parameters:
-      - name: org_id
-        in: path
-        required: true
-        schema:
-          type: integer
-          example: 1
-      - name: table_id
-        in: path
-        required: true
-        schema:
-          type: integer
-          example: 10
-    responses:
-      200:
-        description: Table retrieved or deleted successfully
-      403:
-        description: Unauthorized
-      404:
-        description: Table not found
-    """
-    table = Table.query.filter_by(id=table_id, organization_id=org_id).first_or_404()
+def get_tables():
+    current_user = get_jwt_identity()
+    org_id = current_user['org_id']
 
-    if request.method == 'GET':
-        return jsonify(TableSchema().dump(table)), 200
-
-    elif request.method == 'DELETE':
-        # Delete QR image
-        qr_path = f"static/qr_codes/table_{table.id}.png"
-        if os.path.exists(qr_path):
-            os.remove(qr_path)
-
-        db.session.delete(table)
-        db.session.commit()
-        return jsonify(message="Table deleted"), 200
-    return None
+    tables = Table.query.filter_by(organization_id=org_id).all()
+    return jsonify([{
+        "id": table.id,
+        "number": table.number,
+        "qr_code_url": table.qr_code_url,
+        "is_occupied": table.is_occupied
+    } for table in tables])
