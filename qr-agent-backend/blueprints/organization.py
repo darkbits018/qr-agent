@@ -243,6 +243,47 @@ def bulk_import_items():
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def bulk_create_tables():
+    """
+        Bulk Create Tables
+        ---
+        tags:
+          - Table Management
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 5
+                    description: "Number of tables to create"
+        responses:
+          201:
+            description: Tables created successfully
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      number:
+                        type: string
+                        example: "Table 1"
+                      qr_code_url:
+                        type: string
+                        example: "https://yourdomain.com/menu?org_id=1&table_id=1"
+                      organization_id:
+                        type: integer
+                        example: 1
+          403:
+            description: Unauthorized
+            """
     current_user = get_jwt_identity()
     org_id = current_user['org_id']
     count = request.json.get('count', 1)
@@ -276,6 +317,36 @@ def bulk_create_tables():
 @jwt_required()
 @admin_required(roles=['org_admin'])
 def get_tables():
+    """
+        Get Tables
+        ---
+        tags:
+          - Table Management
+        responses:
+          200:
+            description: List of tables
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      number:
+                        type: string
+                        example: "Table 1"
+                      qr_code_url:
+                        type: string
+                        example: "https://yourdomain.com/menu?org_id=1&table_id=1"
+                      is_occupied:
+                        type: boolean
+                        example: false
+          403:
+            description: Unauthorized
+        """
     current_user = get_jwt_identity()
     org_id = current_user['org_id']
 
@@ -286,3 +357,181 @@ def get_tables():
         "qr_code_url": table.qr_code_url,
         "is_occupied": table.is_occupied
     } for table in tables])
+
+
+# Add tables (single or bulk)
+@bp.route('/tables', methods=['POST'])
+@jwt_required()
+@admin_required(roles=['org_admin'])
+def add_tables():
+    """
+    Add one or multiple tables
+    ---
+    tags:
+      - Table Management
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            tables:
+              type: array
+              items:
+                type: object
+                properties:
+                  number:
+                    type: string
+                    example: "Table 1"
+    responses:
+      201:
+        description: Tables created successfully
+      400:
+        description: Invalid input
+    """
+    current_user = get_jwt_identity()
+    org_id = current_user['org_id']
+    data = request.get_json()
+
+    # Handle both single table and multiple tables
+    if 'tables' in data:  # Bulk creation
+        table_numbers = [t['number'] for t in data['tables']]
+    elif 'number' in data:  # Single table creation
+        table_numbers = [data['number']]
+    else:
+        return jsonify({"error": "Must provide 'number' or 'tables' array"}), 400
+
+    tables = []
+    for number in table_numbers:
+        # Generate QR code URL (implement your own generate_qr_code function)
+        qr_url = generate_qr_code(f"https://yourdomain.com/menu?org_id={org_id}&table_id={number}")
+
+        table = Table(
+            number=number,
+            qr_code_url=qr_url,
+            organization_id=org_id
+        )
+        db.session.add(table)
+        tables.append(table)
+
+    try:
+        db.session.commit()
+        return jsonify({
+            "message": f"{len(tables)} table(s) created successfully",
+            "tables": [{
+                "id": t.id,
+                "number": t.number,
+                "qr_code_url": t.qr_code_url
+            } for t in tables]
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route('/tables', methods=['DELETE'])
+@jwt_required()
+@admin_required(roles=['org_admin'])
+def delete_tables():
+    """
+    Delete tables - supports single, bulk, or all tables
+    ---
+    tags:
+      - Table Management
+    parameters:
+      - name: body
+        in: body
+        schema:
+          type: object
+          properties:
+            table_id:
+              type: integer
+              example: 1
+            table_ids:
+              type: array
+              items:
+                type: integer
+                example: 1
+            delete_all:
+              type: boolean
+              example: false
+    responses:
+      200:
+        description: Tables deleted successfully
+      400:
+        description: Invalid input
+    """
+    current_user = get_jwt_identity()
+    org_id = current_user['org_id']
+    data = request.get_json()
+
+    # Handle delete all request
+    if data.get('delete_all', False):
+        return delete_all_tables(org_id)
+
+    # Handle single or bulk delete
+    if 'table_ids' in data:  # Bulk deletion
+        table_ids = data['table_ids']
+    elif 'table_id' in data:  # Single deletion
+        table_ids = [data['table_id']]
+    else:
+        return jsonify({"error": "Must provide 'table_id', 'table_ids', or 'delete_all: true'"}), 400
+
+    deleted_count = 0
+    for table_id in table_ids:
+        table = Table.query.filter_by(
+            id=table_id,
+            organization_id=org_id
+        ).first()
+
+        if not table:
+            continue
+
+        # Delete QR code file if stored locally
+        delete_qr_code_file(table.qr_code_url)
+
+        db.session.delete(table)
+        deleted_count += 1
+
+    try:
+        db.session.commit()
+        return jsonify({
+            "message": f"{deleted_count} table(s) deleted successfully",
+            "deleted_count": deleted_count
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+def delete_all_tables(org_id):
+    """Helper function to delete all tables for an organization"""
+    try:
+        # Get all tables for the organization
+        tables = Table.query.filter_by(organization_id=org_id).all()
+
+        # Delete associated QR code files
+        for table in tables:
+            delete_qr_code_file(table.qr_code_url)
+
+        # Bulk delete using SQL for better performance
+        deleted_count = Table.query.filter_by(organization_id=org_id).delete()
+        db.session.commit()
+
+        return jsonify({
+            "message": f"All {deleted_count} tables deleted successfully",
+            "deleted_count": deleted_count
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+def delete_qr_code_file(qr_url):
+    """Helper to delete QR code file if stored locally"""
+    if qr_url and qr_url.startswith('/static/qr_codes/'):
+        try:
+            os.remove(qr_url)
+        except OSError:
+            pass  # File already deleted or doesn't exist
