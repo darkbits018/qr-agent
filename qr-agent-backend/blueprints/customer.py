@@ -1,135 +1,100 @@
 from flask import Blueprint, request, jsonify
+from models import db
+from models.menu_item import MenuItem
+from models.order import Order
+from models.order_item import OrderItem
+from models.table import Table
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-bp = Blueprint('customer', __name__)
+bp = Blueprint('customer', __name__, url_prefix='/api/customer')
 
+# Get Menu
 @bp.route('/menu', methods=['GET'])
 @jwt_required()
-def show_menu():
-    """
-    Show Menu
-    ---
-    tags:
-      - Customer
-    responses:
-      200:
-        description: Returns the menu
-    """
-    # Fetch menu from database (mocked here)
-    menu = [{"id": 1, "name": "Pizza", "price": 10.99}, {"id": 2, "name": "Pasta", "price": 8.99}]
-    return jsonify(menu), 200
+def get_menu():
+    organization_id = request.args.get('organization_id')
+    if not organization_id:
+        return jsonify({"error": "Organization ID is required"}), 400
 
+    menu_items = MenuItem.query.filter_by(organization_id=organization_id).all()
+    return jsonify([item.to_dict() for item in menu_items]), 200
 
-@bp.route('/cart', methods=['POST'])
-@jwt_required()
-def add_to_cart():
-    """
-    Add to Cart
-    ---
-    tags:
-      - Customer
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              item_id:
-                type: integer
-                example: 1
-              quantity:
-                type: integer
-                example: 2
-    responses:
-      200:
-        description: Item added to cart
-    """
-    data = request.get_json()
-    item_id = data.get('item_id')
-    quantity = data.get('quantity')
-    # Add item to cart logic here
-    return jsonify({"message": f"Item {item_id} added to cart with quantity {quantity}"}), 200
-
-
-@bp.route('/cart', methods=['GET'])
-@jwt_required()
-def view_cart():
-    """
-    View Cart
-    ---
-    tags:
-      - Customer
-    responses:
-      200:
-        description: Returns the cart
-    """
-    # Fetch cart from database (mocked here)
-    cart = [{"item_id": 1, "name": "Pizza", "quantity": 2, "price": 10.99}]
-    return jsonify(cart), 200
-
-
+# Place Order
 @bp.route('/order', methods=['POST'])
 @jwt_required()
 def place_order():
-    """
-    Place Order
-    ---
-    tags:
-      - Customer
-    responses:
-      201:
-        description: Order placed successfully
-    """
-    # Place order logic here
-    return jsonify({"message": "Order placed successfully"}), 201
+    data = request.get_json()
+    if not data or 'items' not in data or 'table_id' not in data:
+        return jsonify({"error": "Items and table ID are required"}), 400
 
+    customer_id = get_jwt_identity()['id']
+    order = Order(customer_id=customer_id, table_id=data['table_id'], status='pending')
+    db.session.add(order)
+    db.session.commit()
 
-@bp.route('/order/status', methods=['GET'])
+    for item in data['items']:
+        order_item = OrderItem(order_id=order.id, menu_item_id=item['menu_item_id'], quantity=item['quantity'])
+        db.session.add(order_item)
+
+    db.session.commit()
+    return jsonify({"message": "Order placed successfully", "order_id": order.id}), 201
+
+# Get Order Status
+@bp.route('/order/<int:order_id>', methods=['GET'])
 @jwt_required()
-def order_status():
-    """
-    Order Status
-    ---
-    tags:
-      - Customer
-    responses:
-      200:
-        description: Returns the order status
-    """
-    # Fetch order status (mocked here)
-    status = {"order_id": 123, "status": "Preparing"}
-    return jsonify(status), 200
+def get_order_status(order_id):
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
 
+    return jsonify({"order_id": order.id, "status": order.status}), 200
 
-@bp.route('/order/history', methods=['GET'])
+# Add Item to Cart
+@bp.route('/cart', methods=['POST'])
 @jwt_required()
-def order_history():
-    """
-    Order History
-    ---
-    tags:
-      - Customer
-    responses:
-      200:
-        description: Returns the order history
-    """
-    # Fetch order history (mocked here)
-    history = [{"order_id": 123, "items": ["Pizza", "Pasta"], "total": 19.98, "status": "Completed"}]
-    return jsonify(history), 200
+def add_to_cart():
+    data = request.get_json()
+    if not data or 'menu_item_id' not in data or 'quantity' not in data:
+        return jsonify({"error": "Menu item ID and quantity are required"}), 400
 
+    customer_id = get_jwt_identity()['id']
+    cart_item = OrderItem(customer_id=customer_id, menu_item_id=data['menu_item_id'], quantity=data['quantity'], is_cart=True)
+    db.session.add(cart_item)
+    db.session.commit()
 
-@bp.route('/call-waiter', methods=['POST'])
+    return jsonify({"message": "Item added to cart"}), 201
+
+# View Cart
+@bp.route('/cart', methods=['GET'])
+@jwt_required()
+def view_cart():
+    customer_id = get_jwt_identity()['id']
+    cart_items = OrderItem.query.filter_by(customer_id=customer_id, is_cart=True).all()
+    return jsonify([item.to_dict() for item in cart_items]), 200
+
+# Remove Item from Cart
+@bp.route('/cart/<int:item_id>', methods=['DELETE'])
+@jwt_required()
+def remove_from_cart(item_id):
+    cart_item = OrderItem.query.filter_by(id=item_id, is_cart=True).first()
+    if not cart_item:
+        return jsonify({"error": "Item not found in cart"}), 404
+
+    db.session.delete(cart_item)
+    db.session.commit()
+    return jsonify({"message": "Item removed from cart"}), 200
+
+# Call Waiter
+@bp.route('/waiter', methods=['POST'])
 @jwt_required()
 def call_waiter():
-    """
-    Call Waiter
-    ---
-    tags:
-      - Customer
-    responses:
-      200:
-        description: Waiter called successfully
-    """
-    # Logic to notify waiter
+    data = request.get_json()
+    if not data or 'table_id' not in data:
+        return jsonify({"error": "Table ID is required"}), 400
+
+    table = Table.query.get(data['table_id'])
+    if not table:
+        return jsonify({"error": "Table not found"}), 404
+
+    # Logic to notify waiter (e.g., send notification)
     return jsonify({"message": "Waiter has been notified"}), 200

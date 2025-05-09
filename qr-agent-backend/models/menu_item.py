@@ -18,3 +18,17 @@ class MenuItem(db.Model):
 
     is_vegetarian = db.Column(db.Boolean, default=False)  # Can be replaced by dietary_preference
     is_available = db.Column(db.Boolean, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "price": self.price,
+            "description": self.description,
+            "dietary_tag": self.dietary_preference,  # Assuming dietary_preference is used for tags
+            "organization_id": self.organization_id,
+            "category": self.category,
+            "available_times": self.available_times,
+            "is_vegetarian": self.is_vegetarian,
+            "is_available": self.is_available
+        }
