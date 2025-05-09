@@ -33,7 +33,7 @@ db.init_app(app)
 # Initialize Flask-Migrate
 migrate = Migrate(app, db)
 Swagger(app)
-CORS(app)  # Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 
 
 # Register blueprints
