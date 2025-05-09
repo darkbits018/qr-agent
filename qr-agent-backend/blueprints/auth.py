@@ -1,90 +1,63 @@
 from flask import Blueprint, request, jsonify
 from itsdangerous import URLSafeTimedSerializer
+from twilio.rest import Client
+from config import Config
 from models import db, User
 from services.auth import send_otp, verify_otp, authenticate_admin, authenticate_superadmin
 from flask_jwt_extended import create_access_token
 
 bp = Blueprint('auth', __name__)
 
-
 # --------------------------
 # Phone/OTP Auth (Customers)
 # --------------------------
+bp = Blueprint('auth', __name__)
+
+
 @bp.route('/request-otp', methods=['POST'])
 def request_otp():
-    """
-       Request an OTP
-       ---
-       tags:
-         - Authentication
-       parameters:
-         - name: body
-           in: body
-           required: true
-           schema:
-             type: object
-             properties:
-               phone:
-                 type: string
-                 example: "1234567890"
-       responses:
-         200:
-           description: OTP sent successfully
-         400:
-           description: Phone number required
-         500:
-           description: Failed to send OTP
-       """
-
     phone = request.json.get('phone')
     if not phone:
         return jsonify({"error": "Phone number required"}), 400
 
-    if send_otp(phone):
-        return jsonify({"message": "OTP sent successfully"}), 200
-    return jsonify({"error": "Failed to send OTP"}), 500
+    client = Client(Config.TWILIO_ACCOUNT_SID, Config.TWILIO_AUTH_TOKEN)
+
+    try:
+        verification = client.verify \
+            .v2 \
+            .services(Config.TWILIO_VERIFY_SERVICE_SID) \
+            .verifications \
+            .create(to=phone, channel='sms')
+        return jsonify({"message": "OTP sent successfully", "sid": verification.sid}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @bp.route('/verify-otp', methods=['POST'])
 def verify_otp_route():
-    """
-        Verify OTP
-        ---
-        tags:
-          - Authentication
-        parameters:
-          - name: body
-            in: body
-            required: true
-            schema:
-              type: object
-              properties:
-                phone:
-                  type: string
-                  example: "1234567890"
-                otp:
-                  type: string
-                  example: "123456"
-        responses:
-          200:
-            description: OTP verified successfully, returns a token
-          400:
-            description: Phone and OTP required
-          401:
-            description: Invalid OTP
-        """
-
     phone = request.json.get('phone')
     otp = request.json.get('otp')
 
     if not phone or not otp:
         return jsonify({"error": "Phone and OTP required"}), 400
 
-    if verify_otp(phone, otp):
-        user = User.query.filter_by(phone=phone).first()
-        token = create_access_token(identity={"id": user.id, "role": user.role})
-        return jsonify({"token": token}), 200
-    return jsonify({"error": "Invalid OTP"}), 401
+    client = Client(Config.TWILIO_ACCOUNT_SID, Config.TWILIO_AUTH_TOKEN)
+
+    try:
+        verification_check = client.verify \
+            .v2 \
+            .services(Config.TWILIO_VERIFY_SERVICE_SID) \
+            .verification_checks \
+            .create(to=phone, code=otp)
+
+        if verification_check.status == 'approved':
+            user = User.query.filter_by(phone=phone).first()
+            token = create_access_token(identity={"id": user.id, "role": user.role})
+            return jsonify({"message": "OTP verified successfully", "token": token}), 200
+        else:
+            return jsonify({"error": "Invalid OTP"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # --------------------------
