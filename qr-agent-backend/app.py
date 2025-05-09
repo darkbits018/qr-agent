@@ -16,7 +16,7 @@ from models.payment import Payment
 from models.feedback import Feedback
 from flask_migrate import Migrate
 from flasgger import Swagger
-
+from flask_cors import CORS
 
 app = Flask(__name__)
 
@@ -33,6 +33,7 @@ db.init_app(app)
 # Initialize Flask-Migrate
 migrate = Migrate(app, db)
 Swagger(app)
+CORS(app)  # Enable CORS for all routes
 
 
 # Register blueprints

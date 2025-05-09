@@ -19,6 +19,32 @@ bp = Blueprint('auth', __name__)
 
 @bp.route('/request-otp', methods=['POST'])
 def request_otp():
+    """
+        Request OTP for phone number verification.
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: "+1234567890"
+                name:
+                  type: string
+                  example: "John Doe"
+        responses:
+          200:
+            description: OTP sent successfully.
+          400:
+            description: Phone number and name are required or invalid phone format.
+          500:
+            description: Internal server error.
+        """
     phone = request.json.get('phone')
     name = request.json.get('name')  # Get the name from the request
 
@@ -56,6 +82,36 @@ def request_otp():
 
 @bp.route('/verify-otp', methods=['POST'])
 def verify_otp_route():
+    """
+        Verify OTP for phone number authentication.
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: "+1234567890"
+                otp:
+                  type: string
+                  example: "123456"
+        responses:
+          200:
+            description: OTP verified successfully, returns a token.
+          400:
+            description: Phone and OTP are required.
+          401:
+            description: Invalid OTP.
+          404:
+            description: Customer not found.
+          500:
+            description: Internal server error.
+        """
     phone = request.json.get('phone')
     otp = request.json.get('otp')
 
