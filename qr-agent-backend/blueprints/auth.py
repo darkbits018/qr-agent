@@ -1,8 +1,11 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from itsdangerous import URLSafeTimedSerializer
 from twilio.rest import Client
+from blueprints.utils import validate_phone
 from config import Config
 from models import db, User
+from models.customer import Customer
 from services.auth import send_otp, verify_otp, authenticate_admin, authenticate_superadmin
 from flask_jwt_extended import create_access_token
 
@@ -17,19 +20,37 @@ bp = Blueprint('auth', __name__)
 @bp.route('/request-otp', methods=['POST'])
 def request_otp():
     phone = request.json.get('phone')
-    if not phone:
-        return jsonify({"error": "Phone number required"}), 400
+    name = request.json.get('name')  # Get the name from the request
+
+    if not phone or not name:
+        return jsonify({"error": "Phone number and name are required"}), 400
+
+    # Validate phone format if needed
+    if not validate_phone(phone):
+        return jsonify({"error": "Invalid phone format"}), 400
 
     client = Client(Config.TWILIO_ACCOUNT_SID, Config.TWILIO_AUTH_TOKEN)
 
     try:
-        verification = client.verify \
+        # Create or update customer
+        customer = Customer.query.filter_by(phone=phone).first()
+        if not customer:
+            customer = Customer(phone=phone, name=name)
+            db.session.add(customer)
+        else:
+            customer.name = name  # Update name if it already exists
+        db.session.commit()
+
+        # Send OTP
+        client.verify \
             .v2 \
             .services(Config.TWILIO_VERIFY_SERVICE_SID) \
             .verifications \
             .create(to=phone, channel='sms')
-        return jsonify({"message": "OTP sent successfully", "sid": verification.sid}), 200
+
+        return jsonify({"message": "OTP sent successfully"}), 200
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
@@ -51,12 +72,31 @@ def verify_otp_route():
             .create(to=phone, code=otp)
 
         if verification_check.status == 'approved':
-            user = User.query.filter_by(phone=phone).first()
-            token = create_access_token(identity={"id": user.id, "role": user.role})
-            return jsonify({"message": "OTP verified successfully", "token": token}), 200
+            # Find customer
+            customer = Customer.query.filter_by(phone=phone).first()
+
+            if not customer:
+                return jsonify({"error": "Customer not found"}), 404
+
+            # Update last login
+            customer.last_login = datetime.utcnow()
+            db.session.commit()
+
+            # Generate token
+            token = create_access_token(identity={
+                "id": customer.id,
+                "role": "customer",
+                "phone": customer.phone
+            })
+
+            return jsonify({
+                "message": "OTP verified successfully",
+                "token": token
+            }), 200
         else:
             return jsonify({"error": "Invalid OTP"}), 401
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 

@@ -46,3 +46,9 @@ def org_admin_required(fn):
         return fn(*args, **kwargs)
 
     return wrapper
+
+def validate_phone(phone):
+    import re
+    # Simple regex for validating phone numbers (adjust as needed)
+    phone_regex = r'^\+?[1-9]\d{1,14}$'
+    return re.match(phone_regex, phone) is not None
