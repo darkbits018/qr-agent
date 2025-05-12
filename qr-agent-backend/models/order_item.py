@@ -10,3 +10,12 @@ class OrderItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     special_requests = db.Column(db.Text)
     price_at_order = db.Column(db.Float)  # Snapshot of price when ordered
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "order_id": self.order_id,
+            "menu_item_id": self.menu_item_id,
+            "quantity": self.quantity,
+            # Add other fields as needed
+        }

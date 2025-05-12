@@ -18,7 +18,6 @@ class User(db.Model):
 
     # Relationships
     organizations = db.relationship('Organization', backref='organization_admin', lazy=True)  # For org_admins
-    orders = db.relationship('Order', backref='customer', lazy=True)  # For customers
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
