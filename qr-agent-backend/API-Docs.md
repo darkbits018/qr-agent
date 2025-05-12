@@ -287,32 +287,127 @@ token in the `Authorization` header of your requests.
     - **400:** `{"error": "Excel columns don't match required format"}`
     - **400:** `{"error": "Import failed: error message"}`
 
-### Table/QR Management
+# Table/QR Management
 
-#### Bulk Create Tables
+## Bulk Create Tables
 
-- **Endpoint:** `/api/organizations/<int:org_id>/tables/bulk`
+- **Endpoint:** `/tables/bulk`
 - **Method:** `POST`
+- **Authentication:** Requires JWT token with `org_admin` role.
 - **Description:** Bulk creates tables for the organization.
 - **Request Body:**
   ```json
   {
-    "count": "integer"
+    "count": 5
   }
   ```
 - **Responses:**
-    - **201:** `TableSchema(many=True).dump(tables)`
-    - **403:** `{"error": "Unauthorized"}`
+    - **201 Created:**
+      ```json
+      [
+        {
+          "id": 1,
+          "number": "Table 1",
+          "qr_code_url": "https://yourdomain.com/menu?org_id=1&table_id=1",
+          "organization_id": 1
+        }
+      ]
+      ```
+    - **403 Forbidden:**
+      ```json
+      {
+        "error": "Unauthorized"
+      }
+      ```
 
-#### Manage Table
+## Get Tables
 
-- **Endpoint:** `/api/organizations/<int:org_id>/tables/<int:table_id>`
-- **Method:** `GET`, `DELETE`
-- **Description:** Retrieves or deletes a table.
+- **Endpoint:** `/tables`
+- **Method:** `GET`
+- **Authentication:** Requires JWT token with `org_admin` role.
+- **Description:** Retrieves all tables for the organization.
 - **Responses:**
-    - **200 (GET):** `TableSchema().dump(table)`
-    - **200 (DELETE):** `{"message": "Table deleted"}`
-    - **403:** `{"error": "Unauthorized"}`
+    - **200 OK:**
+      ```json
+      [
+        {
+          "id": 1,
+          "number": "Table 1",
+          "qr_code_url": "https://yourdomain.com/menu?org_id=1&table_id=1",
+          "is_occupied": false
+        }
+      ]
+      ```
+    - **403 Forbidden:**
+      ```json
+      {
+        "error": "Unauthorized"
+      }
+      ```
+
+## Add Tables
+
+- **Endpoint:** `/tables`
+- **Method:** `POST`
+- **Authentication:** Requires JWT token with `org_admin` role.
+- **Description:** Adds one or multiple tables.
+- **Request Body:**
+  ```json
+  {
+    "tables": [
+      {
+        "number": "Table 1"
+      }
+    ]
+  }
+  ```
+- **Responses:**
+    - **201 Created:**
+      ```json
+      {
+        "message": "1 table(s) created successfully",
+        "tables": [
+          {
+            "id": 1,
+            "number": "Table 1",
+            "qr_code_url": "https://yourdomain.com/menu?org_id=1&table_id=1"
+          }
+        ]
+      }
+      ```
+    - **400 Bad Request:**
+      ```json
+      {
+        "error": "Must provide 'number' or 'tables' array"
+      }
+      ```
+
+## Delete Tables
+
+- **Endpoint:** `/tables`
+- **Method:** `DELETE`
+- **Authentication:** Requires JWT token with `org_admin` role.
+- **Description:** Deletes tables - supports single, bulk, or all tables.
+- **Request Body:**
+  ```json
+  {
+    "table_ids": [1, 2]
+  }
+  ```
+- **Responses:**
+    - **200 OK:**
+      ```json
+      {
+        "message": "2 table(s) deleted successfully",
+        "deleted_count": 2
+      }
+      ```
+    - **400 Bad Request:**
+      ```json
+      {
+        "error": "Must provide 'table_id', 'table_ids', or 'delete_all: true'"
+      }
+      ```
 
 ## Superadmin Blueprint
 
