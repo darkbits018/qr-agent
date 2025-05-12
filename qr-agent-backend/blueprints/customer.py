@@ -21,25 +21,26 @@ def get_menu():
     return jsonify([item.to_dict() for item in menu_items]), 200
 
 
-# Place Order
+# Place Order from Cart
 @bp.route('/order', methods=['POST'])
 @jwt_required()
 def place_order():
-    data = request.get_json()
-    if not data or 'items' not in data or 'table_id' not in data:
-        return jsonify({"error": "Items and table ID are required"}), 400
-
+    data = request.get_json() or {}
     customer_id = get_jwt_identity()['id']
-    order = Order(customer_id=customer_id, table_id=data['table_id'], status='pending')
-    db.session.add(order)
+
+    # Find the cart order
+    cart_order = Order.query.filter_by(customer_id=customer_id, status='cart').first()
+    if not cart_order:
+        return jsonify({"error": "No cart found"}), 400
+
+    # Optionally update table_id if provided
+    if 'table_id' in data:
+        cart_order.table_id = data['table_id']
+
+    cart_order.status = 'pending'
     db.session.commit()
 
-    for item in data['items']:
-        order_item = OrderItem(order_id=order.id, menu_item_id=item['menu_item_id'], quantity=item['quantity'])
-        db.session.add(order_item)
-
-    db.session.commit()
-    return jsonify({"message": "Order placed successfully", "order_id": order.id}), 201
+    return jsonify({"message": "Order placed successfully", "order_id": cart_order.id}), 200
 
 
 # Get Order Status
