@@ -235,6 +235,45 @@ def superadmin_login():
     return jsonify({"error": "Invalid email or password"}), 401
 
 
+@bp.route('/staff/login', methods=['POST'])
+def staff_login():
+    """
+        Staff Login
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "staff@example.com"
+                password:
+                  type: string
+                  example: "password123"
+        responses:
+          200:
+            description: Returns a staff token
+          400:
+            description: Email and password required
+          401:
+            description: Invalid email or password
+    """
+    data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"error": "Email and password required"}), 400
+
+    # Implement authenticate_staff similar to authenticate_admin
+    token = authenticate_staff(data['email'], data['password'])
+    if token:
+        return jsonify({"staff_token": token}), 200
+    return jsonify({"error": "Invalid email or password"}), 401
+
+
 # --------------------------
 # Password Reset Flow
 # --------------------------
@@ -324,3 +363,44 @@ def reset_password():
         db.session.commit()
         return jsonify({"message": "Password updated"}), 200
     return jsonify({"error": "User not found"}), 404
+
+
+# --------------------------
+# Logout
+# --------------------------
+
+
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+
+# In-memory blacklist for demonstration (use Redis or DB in production)
+jwt_blacklist = set()
+
+
+@bp.route('/logout', methods=['POST'])
+@jwt_required()
+def customer_logout():
+    jti = get_jwt()['jti']
+    jwt_blacklist.add(jti)
+    return jsonify({"message": "Customer logged out"}), 200
+
+
+@bp.route('/org-admin/logout', methods=['POST'])
+@jwt_required()
+def org_admin_logout():
+    identity = get_jwt_identity()
+    if identity.get('role') != 'org_admin':
+        return jsonify({"error": "Unauthorized"}), 403
+    jti = get_jwt()['jti']
+    jwt_blacklist.add(jti)
+    return jsonify({"message": "Org admin logged out"}), 200
+
+
+@bp.route('/superadmin/logout', methods=['POST'])
+@jwt_required()
+def superadmin_logout():
+    identity = get_jwt_identity()
+    if identity.get('role') != 'superadmin':
+        return jsonify({"error": "Unauthorized"}), 403
+    jti = get_jwt()['jti']
+    jwt_blacklist.add(jti)
+    return jsonify({"message": "Superadmin logged out"}), 200

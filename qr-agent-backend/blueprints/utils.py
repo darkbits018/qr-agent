@@ -47,8 +47,34 @@ def org_admin_required(fn):
 
     return wrapper
 
+
 def validate_phone(phone):
     import re
     # Simple regex for validating phone numbers (adjust as needed)
     phone_regex = r'^\+?[1-9]\d{1,14}$'
     return re.match(phone_regex, phone) is not None
+
+
+# utils.py
+from flask import jsonify
+from flask_jwt_extended import get_jwt_identity
+from functools import wraps
+
+
+def role_required(roles):
+    """
+    Decorator to restrict access to users with specific roles.
+    :param roles: List of allowed roles
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            user = get_jwt_identity()
+            if not user or user.get('role') not in roles:
+                return jsonify({"error": "Access forbidden: insufficient role"}), 403
+            return f(*args, **kwargs)
+
+        return wrapped
+
+    return decorator

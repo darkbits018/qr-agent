@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from flask import Flask
+from blueprints.auth import jwt_blacklist
 from config import Config
 from blueprints import superadmin, organization, kitchen, customer, auth
 from models import db
@@ -35,7 +36,6 @@ migrate = Migrate(app, db)
 Swagger(app)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 
-
 # Register blueprints
 app.register_blueprint(superadmin.bp)
 app.register_blueprint(organization.bp)
@@ -43,9 +43,13 @@ app.register_blueprint(kitchen.bp)
 app.register_blueprint(customer.bp)
 app.register_blueprint(auth.bp)
 
-
 with app.app_context():
     db.create_all()
+
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    return jwt_payload['jti'] in jwt_blacklist
 
 
 @app.route('/')
