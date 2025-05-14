@@ -19,43 +19,48 @@ from flask_migrate import Migrate
 from flasgger import Swagger
 from flask_cors import CORS
 
-app = Flask(__name__)
 
-load_dotenv()
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Load secret key from .env
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=12)
-app.config['JWT_IDENTITY_CLAIM'] = 'identity'  # Critical for proper handling
+def create_app():
+    app = Flask(__name__)
 
-app.config.from_object(Config)
-# Initialize JWTManage
-jwt = JWTManager(app)
-# Initialize database
-db.init_app(app)
-# Initialize Flask-Migrate
-migrate = Migrate(app, db)
-Swagger(app)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
+    load_dotenv()
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Load secret key from .env
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=12)
+    app.config['JWT_IDENTITY_CLAIM'] = 'identity'  # Critical for proper handling
 
-# Register blueprints
-app.register_blueprint(superadmin.bp)
-app.register_blueprint(organization.bp)
-app.register_blueprint(kitchen.bp)
-app.register_blueprint(customer.bp)
-app.register_blueprint(auth.bp)
+    app.config.from_object(Config)
+    # Initialize JWTManage
+    jwt = JWTManager(app)
+    # Initialize database
+    db.init_app(app)
+    # Initialize Flask-Migrate
+    migrate = Migrate(app, db)
+    Swagger(app)
+    CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 
-with app.app_context():
-    db.create_all()
+    # Register blueprints
+    app.register_blueprint(superadmin.bp)
+    app.register_blueprint(organization.bp)
+    app.register_blueprint(kitchen.bp)
+    app.register_blueprint(customer.bp)
+    app.register_blueprint(auth.bp)
+
+    with app.app_context():
+        db.create_all()
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        return jwt_payload['jti'] in jwt_blacklist
+
+    @app.route('/')
+    def health_check():
+        return {'status': 'OK'}
+
+    return app
 
 
-@jwt.token_in_blocklist_loader
-def check_if_token_revoked(jwt_header, jwt_payload):
-    return jwt_payload['jti'] in jwt_blacklist
-
-
-@app.route('/')
-def health_check():
-    return {'status': 'OK'}
 
 
 if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True)

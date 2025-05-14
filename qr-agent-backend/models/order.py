@@ -28,6 +28,8 @@ class Order(db.Model):
     priority = db.Column(db.String(10), default='normal')
     station_assignment_time = db.Column(db.DateTime)
     status_changes = db.relationship('StatusChange', backref='order', lazy=True)
+    kitchen_station_id = db.Column(db.Integer, db.ForeignKey('kitchen_stations.id'))
+    kitchen_station = db.relationship('KitchenStation', back_populates='current_orders')
 
     def status_timeline(self):
         return {

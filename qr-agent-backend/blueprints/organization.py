@@ -292,7 +292,7 @@ def bulk_create_tables():
     for i in range(1, count + 1):
         # Generate QR code with dynamic URL
         qr_url = generate_qr_code(
-            f"https://yourdomain.com/menu?org_id={org_id}&table_id={i}"
+            f"http://localhost:5173/customer/welcome?org_id={org_id}&table_id={i}"
         )
 
         table = Table(
