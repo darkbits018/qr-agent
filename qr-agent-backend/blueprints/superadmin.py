@@ -449,44 +449,6 @@ def update_admin(admin_id):
     return jsonify(UserSchema().dump(admin)), 200
 
 
-
-@bp.route('/organizations/<int:org_id>/staff', methods=['POST'])
-@jwt_required()
-def add_staff(org_id):
-    identity = get_jwt_identity()
-    role = identity.get('role')
-
-    # Only superadmin or org_admin can add staff
-    if role not in ['superadmin', 'org_admin']:
-        return jsonify({"error": "Forbidden"}), 403
-
-    # org_admin can only add staff to their own org
-    if role == 'org_admin' and identity.get('org_id') != org_id:
-        return jsonify({"error": "Cannot add staff to another organization"}), 403
-
-    data = request.get_json()
-    if not data.get('email') or not data.get('password'):
-        return jsonify({"error": "Email and password required"}), 400
-
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({"error": "User already exists"}), 400
-
-    organization = Organization.query.get(org_id)
-    if not organization:
-        return jsonify({"error": "Invalid organization_id"}), 400
-
-    staff = User(
-        email=data['email'],
-        role='staff',
-        organization_id=org_id
-    )
-    staff.set_password(data['password'])
-    db.session.add(staff)
-    db.session.commit()
-
-    return jsonify(UserSchema().dump(staff)), 201
-
-
 @bp.route('/admins/<int:admin_id>', methods=['DELETE'])
 @jwt_required()
 def deactivate_admin(admin_id):

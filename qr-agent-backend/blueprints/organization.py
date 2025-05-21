@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Organization, MenuItem, Table
-from schemas import MenuSchema, MenuItemSchema, TableSchema
+from models import db, Organization, MenuItem, Table, User
+from schemas import MenuSchema, MenuItemSchema, TableSchema, UserSchema
 import pandas as pd
 import qrcode
 import os
@@ -535,3 +535,37 @@ def delete_qr_code_file(qr_url):
             os.remove(qr_url)
         except OSError:
             pass  # File already deleted or doesn't exist
+
+
+@bp.route('/staff', methods=['POST'])
+@jwt_required()
+def add_staff():
+    identity = get_jwt_identity()
+    role = identity.get('role')
+
+    if role != 'org_admin':
+        return jsonify({"error": "Forbidden"}), 403
+
+    org_id = int(identity.get('org_id'))
+
+    data = request.get_json()
+    if not data.get('email') or not data.get('password'):
+        return jsonify({"error": "Email and password required"}), 400
+
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    organization = Organization.query.get(org_id)
+    if not organization:
+        return jsonify({"error": "Invalid organization_id"}), 400
+
+    staff = User(
+        email=data['email'],
+        role='staff',
+        organization_id=org_id
+    )
+    staff.set_password(data['password'])
+    db.session.add(staff)
+    db.session.commit()
+
+    return jsonify(UserSchema().dump(staff)), 201
