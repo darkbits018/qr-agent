@@ -15,9 +15,15 @@ class User(db.Model):
     otp_expiry = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)  # Add this line if missing
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'), nullable=True)  # <-- Add this line
 
     # Relationships
-    organizations = db.relationship('Organization', backref='organization_admin', lazy=True)  # For org_admins
+    organizations = db.relationship(
+        'Organization',
+        backref='organization_admin',
+        lazy=True,
+        foreign_keys='User.organization_id'
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

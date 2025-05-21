@@ -6,7 +6,7 @@ from blueprints.utils import validate_phone
 from config import Config
 from models import db, User
 from models.customer import Customer
-from services.auth import send_otp, verify_otp, authenticate_admin, authenticate_superadmin
+from services.auth import send_otp, verify_otp, authenticate_admin, authenticate_superadmin, authenticate_staff
 from flask_jwt_extended import create_access_token
 
 bp = Blueprint('auth', __name__)
@@ -114,6 +114,8 @@ def verify_otp_route():
         """
     phone = request.json.get('phone')
     otp = request.json.get('otp')
+    organization_id = request.json.get('organization_id')
+    table_id = request.json.get('table_id')
 
     if not phone or not otp:
         return jsonify({"error": "Phone and OTP required"}), 400
@@ -128,22 +130,26 @@ def verify_otp_route():
             .create(to=phone, code=otp)
 
         if verification_check.status == 'approved':
-            # Find customer
             customer = Customer.query.filter_by(phone=phone).first()
-
             if not customer:
                 return jsonify({"error": "Customer not found"}), 404
 
-            # Update last login
             customer.last_login = datetime.utcnow()
             db.session.commit()
 
-            # Generate token
-            token = create_access_token(identity={
+            # Add org and table to JWT if provided
+            token_payload = {
                 "id": customer.id,
                 "role": "customer",
-                "phone": customer.phone
-            })
+                "phone": customer.phone,
+                "name": customer.name
+            }
+            if organization_id:
+                token_payload["organization_id"] = organization_id
+            if table_id:
+                token_payload["table_id"] = table_id
+
+            token = create_access_token(identity=token_payload)
 
             return jsonify({
                 "message": "OTP verified successfully",
@@ -235,7 +241,7 @@ def superadmin_login():
     return jsonify({"error": "Invalid email or password"}), 401
 
 
-@bp.route('/staff/login', methods=['POST'])
+@bp.route('/staff-login', methods=['POST'])
 def staff_login():
     """
         Staff Login

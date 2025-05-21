@@ -270,6 +270,8 @@ def deactivate_organization(org_id):
 # --------------------------
 # Admin Management
 # --------------------------
+# TODO: "Review and refactor organization admin logic to support multiple org_admins per organization if needed."
+
 @bp.route('/admins', methods=['POST'])
 @jwt_required()
 def create_admin():
@@ -313,7 +315,7 @@ def create_admin():
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Required fields: {required_fields}"}), 400
 
-    if data['role'] not in ['superadmin', 'org_admin']:
+    if data['role'] not in ['superadmin', 'org_admin', 'staff']:
         return jsonify({"error": "Invalid role"}), 400
 
     # Check if user exists
@@ -329,7 +331,7 @@ def create_admin():
     admin.set_password(data['password'])
 
     # Associate with organization if role is org_admin
-    if data['role'] == 'org_admin':
+    if data['role'] in ['org_admin', 'staff']:
         if 'organization_id' not in data:
             return jsonify({"error": "organization_id is required for org_admin"}), 400
 
@@ -445,6 +447,44 @@ def update_admin(admin_id):
 
     db.session.commit()
     return jsonify(UserSchema().dump(admin)), 200
+
+
+
+@bp.route('/organizations/<int:org_id>/staff', methods=['POST'])
+@jwt_required()
+def add_staff(org_id):
+    identity = get_jwt_identity()
+    role = identity.get('role')
+
+    # Only superadmin or org_admin can add staff
+    if role not in ['superadmin', 'org_admin']:
+        return jsonify({"error": "Forbidden"}), 403
+
+    # org_admin can only add staff to their own org
+    if role == 'org_admin' and identity.get('org_id') != org_id:
+        return jsonify({"error": "Cannot add staff to another organization"}), 403
+
+    data = request.get_json()
+    if not data.get('email') or not data.get('password'):
+        return jsonify({"error": "Email and password required"}), 400
+
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    organization = Organization.query.get(org_id)
+    if not organization:
+        return jsonify({"error": "Invalid organization_id"}), 400
+
+    staff = User(
+        email=data['email'],
+        role='staff',
+        organization_id=org_id
+    )
+    staff.set_password(data['password'])
+    db.session.add(staff)
+    db.session.commit()
+
+    return jsonify(UserSchema().dump(staff)), 201
 
 
 @bp.route('/admins/<int:admin_id>', methods=['DELETE'])

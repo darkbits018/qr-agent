@@ -80,3 +80,15 @@ def authenticate_superadmin(email, password):
             expires_delta=timedelta(hours=12)
         )
     return None
+
+
+def authenticate_staff(email, password):
+    staff = User.query.filter_by(email=email, role='staff').first()
+    if staff and staff.check_password(password):
+        return create_access_token(identity={
+            "id": staff.id,
+            "role": "staff",
+            "email": staff.email,
+            "org_id": staff.organization_id
+        })
+    return None

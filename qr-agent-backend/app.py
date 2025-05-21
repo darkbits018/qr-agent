@@ -3,7 +3,7 @@ from datetime import timedelta
 from flask import Flask
 from blueprints.auth import jwt_blacklist
 from config import Config
-from blueprints import superadmin, organization, kitchen, customer, auth
+from blueprints import superadmin, organization, kitchen, customer, auth, group
 from models import db
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager, jwt_required
@@ -44,9 +44,10 @@ def create_app():
     app.register_blueprint(kitchen.bp)
     app.register_blueprint(customer.bp)
     app.register_blueprint(auth.bp)
+    app.register_blueprint(group.bp)
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):

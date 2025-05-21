@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Order, OrderItem, MenuItem, Table, Organization
-from datetime import datetime
+from models import db, Order, OrderItem, MenuItem, Table, Organization, StatusChange
+from datetime import datetime, timedelta
 from .utils import admin_required, role_required
 from functools import wraps
 from sqlalchemy import func
@@ -15,7 +15,8 @@ bp = Blueprint('kitchen', __name__, url_prefix='/api/kitchen')
 def validate_kitchen_order(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        order = Order.query.get(kwargs.get('order_id'))
+        order_id = kwargs.pop('order_id', None)  # Remove order_id from kwargs
+        order = Order.query.get(order_id)
         if not order:
             return jsonify({"error": "Order not found"}), 404
 
@@ -45,7 +46,7 @@ def validate_status_transition(current_status, new_status):
 # ======================
 @bp.route('/orders', methods=['GET'])
 @jwt_required()
-@role_required(['kitchen_staff', 'org_admin'])
+@role_required(['staff', 'org_admin'])
 def get_kitchen_orders():
     """
     Get filtered kitchen orders with advanced sorting
@@ -127,7 +128,6 @@ def get_kitchen_orders():
                 'preference': item.menu_item.dietary_preference
             },
             'special_requests': item.special_requests,
-            'prep_notes': item.menu_item.prep_instructions
         } for item in order.items],
         'timestamps': {
             'created': order.created_at.isoformat(),
@@ -139,7 +139,7 @@ def get_kitchen_orders():
 
 @bp.route('/orders/<int:order_id>/status', methods=['PUT'])
 @jwt_required()
-@role_required(['kitchen_staff', 'org_admin'])
+@role_required(['staff', 'org_admin'])
 @validate_kitchen_order
 def update_order_status(order):
     """
@@ -194,13 +194,15 @@ def update_order_status(order):
         setattr(order, status_to_timestamp[new_status], now)
 
     # Add status change record
-    order.status_changes.append({
-        'from_status': order.status,
-        'to_status': new_status,
-        'timestamp': now,
-        'changed_by': get_jwt_identity()['id'],
-        'notes': notes
-    })
+    status_change = StatusChange(
+        order_id=order.id,
+        from_status=order.status,
+        to_status=new_status,
+        timestamp=now,
+        changed_by=get_jwt_identity()['id'],
+        notes=notes
+    )
+    order.status_changes.append(status_change)
 
     db.session.commit()
 
@@ -213,124 +215,23 @@ def update_order_status(order):
 
 
 # ======================
-# Kitchen Management
-# ======================
-@bp.route('/stations', methods=['GET'])
-@jwt_required()
-@role_required(['kitchen_staff', 'org_admin'])
-def get_kitchen_stations():
-    """
-    Get kitchen stations and their current orders
-    ---
-    responses:
-      200:
-        description: List of kitchen stations with assigned orders
-    """
-    org_id = get_jwt_identity()['org_id']
-    stations = Organization.query.get(org_id).kitchen_stations
-
-    return jsonify([{
-        'id': station.id,
-        'name': station.name,
-        'current_orders': [{
-            'order_id': order.id,
-            'table_number': order.table.number,
-            'items': [item.menu_item.name for item in order.items],
-            'time_in_station': (datetime.utcnow() - order.station_assignment_time).total_seconds() // 60
-        } for order in station.current_orders]
-    } for station in stations])
-
-
-@bp.route('/orders/<int:order_id>/assign', methods=['POST'])
-@jwt_required()
-@role_required(['kitchen_manager', 'org_admin'])
-@validate_kitchen_order
-def assign_order_to_station(order):
-    """
-    Assign order to kitchen station
-    ---
-    parameters:
-      - name: order_id
-        in: path
-        required: true
-      - name: body
-        in: body
-        required: true
-        schema:
-          type: object
-          properties:
-            station_id:
-              type: integer
-            priority:
-              type: string
-              enum: [normal, high, rush]
-    responses:
-      200:
-        description: Order assigned successfully
-      400:
-        description: Station at capacity
-    """
-    data = request.get_json()
-    station_id = data.get('station_id')
-    priority = data.get('priority', 'normal')
-
-    station = KitchenStation.query.get(station_id)
-    if not station or station.organization_id != get_jwt_identity()['org_id']:
-        return jsonify({"error": "Invalid station"}), 400
-
-    if len(station.current_orders) >= station.capacity:
-        return jsonify({"error": "Station at capacity"}), 400
-
-    order.station_id = station_id
-    order.priority = priority
-    order.station_assignment_time = datetime.utcnow()
-    db.session.commit()
-
-    return jsonify({
-        "message": "Order assigned to station",
-        "station": station.name,
-        "position_in_queue": len(station.current_orders)
-    })
-
-
-# ======================
 # Analytics Endpoints
 # ======================
 @bp.route('/analytics/performance', methods=['GET'])
 @jwt_required()
 @admin_required(roles=['org_admin', 'kitchen_manager'])
 def get_performance_metrics():
-    """
-    Get kitchen performance analytics
-    ---
-    parameters:
-      - name: timeframe
-        in: query
-        schema:
-          type: string
-          enum: [today, week, month]
-      - name: station_id
-        in: query
-        schema:
-          type: integer
-    responses:
-      200:
-        description: Comprehensive performance metrics
-    """
     org_id = get_jwt_identity()['org_id']
     timeframe = request.args.get('timeframe', 'today')
-    station_id = request.args.get('station_id')
 
-    # Calculate time range
     now = datetime.utcnow()
     if timeframe == 'today':
         start_date = now.replace(hour=0, minute=0, second=0)
     elif timeframe == 'week':
         start_date = now - timedelta(days=7)
-    else:  # month
+    else:
         start_date = now - timedelta(days=30)
 
-    # Base query
     query = db.session.query(
         func.avg(Order.ready_at - Order.accepted_at).label('avg_prep_time'),
         func.count(Order.id).label('total_orders'),
@@ -341,12 +242,8 @@ def get_performance_metrics():
         Order.created_at >= start_date
     )
 
-    if station_id:
-        query = query.filter(Order.station_id == station_id)
-
     metrics = query.first()
 
-    # Item-level statistics
     popular_items = db.session.query(
         MenuItem.name,
         func.count(OrderItem.id).label('order_count')
@@ -360,8 +257,7 @@ def get_performance_metrics():
         "avg_prep_time": str(metrics.avg_prep_time),
         "avg_completion_time": str(metrics.avg_completion_time),
         "total_orders": metrics.total_orders,
-        "popular_items": [{"name": item[0], "count": item[1]} for item in popular_items],
-        "station_utilization": get_station_utilization(org_id, start_date)
+        "popular_items": [{"name": item[0], "count": item[1]} for item in popular_items]
     })
 
 
@@ -378,17 +274,3 @@ def get_allowed_transitions(current_status):
         'served': ['completed']
     }
     return transitions.get(current_status, [])
-
-
-def get_station_utilization(org_id, start_date):
-    stations = KitchenStation.query.filter_by(organization_id=org_id).all()
-    return [{
-        'station_id': s.id,
-        'name': s.name,
-        'utilization': db.session.query(
-            func.count(Order.id) / (s.capacity * ((datetime.utcnow() - start_date).days or 1))
-        ).join(Table).filter(
-            Order.station_id == s.id,
-            Order.created_at >= start_date
-        ).scalar() * 100
-    } for s in stations]

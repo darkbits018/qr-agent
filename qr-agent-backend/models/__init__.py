@@ -13,5 +13,6 @@ from .payment import Payment
 from .feedback import Feedback
 from .table import Table
 from .customer import Customer
-from .kitchen_station import KitchenStation
 from .status_change import StatusChange
+from .group import Group
+from .group_member import GroupMember
