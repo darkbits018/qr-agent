@@ -305,7 +305,6 @@ def bulk_create_tables():
         )
     db.session.commit()
 
-
     return jsonify([{
         "id": table.id,
         "number": table.number,
@@ -395,40 +394,38 @@ def add_tables():
     org_id = current_user['org_id']
     data = request.get_json()
 
-    # Handle both single table and multiple tables
-    if 'tables' in data:  # Bulk creation
+    if 'tables' in data:
         table_numbers = [t['number'] for t in data['tables']]
-    elif 'number' in data:  # Single table creation
+    elif 'number' in data:
         table_numbers = [data['number']]
     else:
         return jsonify({"error": "Must provide 'number' or 'tables' array"}), 400
 
     tables = []
     for number in table_numbers:
-        # Generate QR code URL (implement your own generate_qr_code function)
-        qr_url = generate_qr_code(f"https://localhost:5173/customer/welcome?org_id={org_id}&table_id={number}")
-
         table = Table(
             number=number,
-            qr_code_url=qr_url,
             organization_id=org_id
         )
         db.session.add(table)
         tables.append(table)
 
-    try:
-        db.session.commit()
-        return jsonify({
-            "message": f"{len(tables)} table(s) created successfully",
-            "tables": [{
-                "id": t.id,
-                "number": t.number,
-                "qr_code_url": t.qr_code_url
-            } for t in tables]
-        }), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+    db.session.commit()  # Now table.id is available
+
+    for table in tables:
+        table.qr_code_url = generate_qr_code(
+            f"https://localhost:5173/customer/welcome?org_id={org_id}&table_id={table.id}"
+        )
+    db.session.commit()
+
+    return jsonify({
+        "message": f"{len(tables)} table(s) created successfully",
+        "tables": [{
+            "id": t.id,
+            "number": t.number,
+            "qr_code_url": t.qr_code_url
+        } for t in tables]
+    }), 201
 
 
 @bp.route('/tables', methods=['DELETE'])
