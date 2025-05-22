@@ -290,20 +290,21 @@ def bulk_create_tables():
 
     tables = []
     for i in range(1, count + 1):
-        # Generate QR code with dynamic URL
-        qr_url = generate_qr_code(
-            f"http://localhost:5173/customer/welcome?org_id={org_id}&table_id={i}"
-        )
-
         table = Table(
             number=f"Table {i}",
-            qr_code_url=qr_url,
             organization_id=org_id
         )
         db.session.add(table)
         tables.append(table)
 
+    db.session.commit()  # Now table.id is available
+
+    for table in tables:
+        table.qr_code_url = generate_qr_code(
+            f"http://localhost:5173/customer/welcome?org_id={org_id}&table_id={table.id}"
+        )
     db.session.commit()
+
 
     return jsonify([{
         "id": table.id,
