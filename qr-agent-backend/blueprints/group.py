@@ -1,3 +1,7 @@
+import base64
+from io import BytesIO
+
+import qrcode
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Table
@@ -49,9 +53,15 @@ def create_group():
     # Create QR code URL
     qr_url = f"{request.host_url}join?org_id={organization_id}&table_id={table_id}&group_id={group.id}"
 
+    qr_img = qrcode.make(qr_url)
+    buffered = BytesIO()
+    qr_img.save(buffered, format="PNG")
+    qr_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
     return jsonify({
         "group_id": group.id,
         "qr_url": qr_url,
+        "qr_image_base64": qr_base64,
         "join_code": join_code,
         "member_token": member_token
     }), 201
