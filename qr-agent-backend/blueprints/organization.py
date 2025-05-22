@@ -405,7 +405,7 @@ def add_tables():
     tables = []
     for number in table_numbers:
         # Generate QR code URL (implement your own generate_qr_code function)
-        qr_url = generate_qr_code(f"https://yourdomain.com/menu?org_id={org_id}&table_id={number}")
+        qr_url = generate_qr_code(f"https://localhost:5173/customer/welcome?org_id={org_id}&table_id={number}")
 
         table = Table(
             number=number,
