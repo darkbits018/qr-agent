@@ -61,7 +61,7 @@ def validate_menu_item(f):
 # Menu Endpoints
 # ======================
 @bp.route('/menu', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def get_menu():
     """
     Get menu items for an organization
