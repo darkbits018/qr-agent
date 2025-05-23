@@ -50,7 +50,7 @@ def create_group():
     db.session.commit()
 
     # Create QR code URL
-    qr_url = f"https://localhost:5173/join?org_id={organization_id}&table_id={table_id}&group_id={group.id}"
+    qr_url = f"https://localhost:5173/customer/join?org_id={organization_id}&table_id={table_id}&group_id={group.id}"
 
     qr_img = qrcode.make(qr_url)
     buffered = BytesIO()
