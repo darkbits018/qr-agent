@@ -325,6 +325,11 @@ def remove_from_cart(item_id):
       404:
         description: Item not found
     """
+    data = request.get_json() or {}
+    item_id = data.get('item_id')
+    if not item_id:
+        return jsonify({"error": "Item ID is required"}), 400
+
     customer_id = get_jwt_identity()['id']
     cart_order = Order.query.filter_by(
         customer_id=customer_id,
