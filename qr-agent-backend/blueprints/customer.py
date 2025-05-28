@@ -299,6 +299,8 @@ def view_cart():
             "items": [
                 {
                     **item.to_dict(),
+                    "name": item.menu_item.name,
+                    "price": item.price_at_order or item.menu_item.price,
                     "ordered_by": members.get(item.member_id, "Unknown") if item.member_id else "Unknown"
                 } for item in cart_items
             ],
