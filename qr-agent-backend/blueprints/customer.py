@@ -311,47 +311,60 @@ def view_cart():
 
 
 @bp.route('/cart/<int:item_id>', methods=['DELETE'])
-@jwt_required()
 def remove_from_cart(item_id):
-    """
-    Remove item from cart
-    ---
-    parameters:
-      - name: item_id
-        in: path
-        required: true
-        type: integer
-    responses:
-      200:
-        description: Item removed
-      404:
-        description: Item not found
-    """
-    data = request.get_json() or {}
-    item_id = data.get('item_id')
-    if not item_id:
-        return jsonify({"error": "Item ID is required"}), 400
+    from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+    verify_jwt_in_request(optional=True)
+    identity = get_jwt_identity()
+    data = request.args or request.get_json() or {}
 
-    customer_id = get_jwt_identity()['id']
-    cart_order = Order.query.filter_by(
-        customer_id=customer_id,
-        status='cart'
-    ).first()
+    if identity:
+        # Authenticated user (personal cart)
+        customer_id = identity['id']
+        cart_order = Order.query.filter_by(
+            customer_id=customer_id,
+            status='cart'
+        ).first()
+        if not cart_order:
+            return jsonify({"error": "No active cart found"}), 404
 
-    if not cart_order:
-        return jsonify({"error": "No active cart found"}), 404
+        cart_item = OrderItem.query.filter_by(
+            id=item_id,
+            order_id=cart_order.id
+        ).first()
+        if not cart_item:
+            return jsonify({"error": "Item not found in cart"}), 404
 
-    cart_item = OrderItem.query.filter_by(
-        id=item_id,
-        order_id=cart_order.id
-    ).first()
+    else:
+        # Group member (unauthenticated)
+        group_id = data.get('group_id')
+        member_token = data.get('member_token')
+        if not group_id or not member_token:
+            return jsonify({"error": "Group ID and member token required"}), 403
 
-    if not cart_item:
-        return jsonify({"error": "Item not found in cart"}), 404
+        member = GroupMember.query.filter_by(
+            group_id=group_id,
+            member_token=member_token
+        ).first()
+        if not member:
+            return jsonify({"error": "Invalid group membership"}), 403
+
+        cart_order = Order.query.filter_by(
+            group_id=group_id,
+            status='cart'
+        ).first()
+        if not cart_order:
+            return jsonify({"error": "No active cart found"}), 404
+
+        cart_item = OrderItem.query.filter_by(
+            id=item_id,
+            order_id=cart_order.id,
+            member_id=member.id
+        ).first()
+        if not cart_item:
+            return jsonify({"error": "Item not found in cart"}), 404
 
     db.session.delete(cart_item)
     db.session.commit()
-
     return jsonify({"message": "Item removed from cart"}), 200
 
 
