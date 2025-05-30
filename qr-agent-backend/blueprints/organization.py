@@ -6,6 +6,8 @@ import pandas as pd
 import qrcode
 import os
 from io import BytesIO
+
+from services import embedding_service
 from .utils import admin_required, generate_qr_code
 
 bp = Blueprint('organization', __name__, url_prefix='/api/organizations')
@@ -66,6 +68,7 @@ def create_menu_item():
     )
     db.session.add(item)
     db.session.commit()
+    embedding_service.build_index_for_organization(org_id)  # Refresh index
     return jsonify(MenuItemSchema().dump(item)), 201
 
 
@@ -155,11 +158,13 @@ def manage_menu_item(item_id):
         item.available_times = request.json.get('available_times', item.available_times)
         item.is_available = request.json.get('is_available', item.is_available)
         db.session.commit()
+        embedding_service.build_index_for_organization(org_id)  # Refresh index
         return jsonify(MenuItemSchema().dump(item)), 200
 
     elif request.method == 'DELETE':
         db.session.delete(item)
         db.session.commit()
+        embedding_service.build_index_for_organization(org_id)  # Refresh index
         return jsonify(message="Menu item deleted"), 200
     return None
 

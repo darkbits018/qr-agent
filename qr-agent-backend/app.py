@@ -22,6 +22,8 @@ from flask_cors import CORS
 from flask_sockets import Sockets
 from gevent import pywsgi
 from websockets import register_sockets
+from services.embedding_service import EmbeddingService
+
 
 
 def create_app():
@@ -43,6 +45,7 @@ def create_app():
     migrate = Migrate(app, db)
     Swagger(app)
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
+
 
     # Register blueprints
     app.register_blueprint(superadmin.bp)

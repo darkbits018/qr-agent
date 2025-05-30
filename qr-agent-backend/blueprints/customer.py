@@ -1,4 +1,6 @@
 from flask import Blueprint, request, jsonify
+
+
 from models import db, GroupMember
 from models.menu_item import MenuItem
 from models.order import Order
@@ -8,6 +10,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_req
 from datetime import datetime
 from functools import wraps
 
+from services import embedding_service
 from websockets import broadcast_cart_update
 
 bp = Blueprint('customer', __name__, url_prefix='/api/customer')
@@ -91,6 +94,35 @@ def get_menu():
         return jsonify([item.to_dict() for item in menu_items]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@bp.route('/menu/search', methods=['GET'])
+@jwt_required()
+def search_menu_items():
+    """
+    Search menu items using natural language
+    ---
+    tags:
+      - Customer
+    parameters:
+      - name: q
+        in: query
+        required: true
+        type: string
+        example: "paneer dish"
+    responses:
+      200:
+        description: List of matching menu items
+    """
+    identity = get_jwt_identity()
+    org_id = request.args.get("org_id") or identity.get("organization_id")
+    query = request.args.get("q")
+
+    if not query:
+        return jsonify({"error": "Query parameter 'q' is required"}), 400
+
+    matches = embedding_service.search_menu_items(org_id, query, k=5)
+    return jsonify({"results": matches}), 200
 
 
 # ======================
