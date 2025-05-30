@@ -1,6 +1,0 @@
-Flask
-requests
-spacy
-google-cloud-speech
-google-cloud-texttospeech
-python-dotenv
