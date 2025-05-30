@@ -8,6 +8,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_req
 from datetime import datetime
 from functools import wraps
 
+from websockets import broadcast_cart_update
+
 bp = Blueprint('customer', __name__, url_prefix='/api/customer')
 
 
@@ -225,6 +227,17 @@ def add_to_cart():
 
         db.session.commit()
 
+        updated_cart = {
+            "action": "add",
+            "item": {
+                "id": existing_item.id if existing_item else cart_item.id,
+                "quantity": quantity,
+                "menu_item_id": menu_item.id,
+                "price": menu_item.price
+            }
+        }
+        broadcast_cart_update(group_id, updated_cart)
+
         return jsonify({
             "message": "Item added to cart",
             "cart_item_id": existing_item.id if existing_item else cart_item.id,
@@ -363,8 +376,13 @@ def remove_from_cart(item_id):
         if not cart_item:
             return jsonify({"error": "Item not found in cart"}), 404
 
+    group_id = cart_order.group_id
     db.session.delete(cart_item)
     db.session.commit()
+
+    if group_id:
+        broadcast_cart_update(group_id, {"action": "remove", "item_id": item_id})
+
     return jsonify({"message": "Item removed from cart"}), 200
 
 

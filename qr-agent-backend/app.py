@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from flask import Flask
+from geventwebsocket.handler import WebSocketHandler
 from blueprints.auth import jwt_blacklist
 from config import Config
 from blueprints import superadmin, organization, kitchen, customer, auth, group
@@ -18,6 +19,9 @@ from models.feedback import Feedback
 from flask_migrate import Migrate
 from flasgger import Swagger
 from flask_cors import CORS
+from flask_sockets import Sockets
+from gevent import pywsgi
+from websockets import register_sockets
 
 
 def create_app():
@@ -33,6 +37,8 @@ def create_app():
     jwt = JWTManager(app)
     # Initialize database
     db.init_app(app)
+    sockets = Sockets(app)
+    register_sockets(sockets)
     # Initialize Flask-Migrate
     migrate = Migrate(app, db)
     Swagger(app)
@@ -64,6 +70,8 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
+    server = pywsgi.WSGIServer(('0.0.0.0', 5000), app, handler_class=WebSocketHandler)
+    print("Server running on ws://localhost:5000")
+    server.serve_forever()
 
 app = create_app()
