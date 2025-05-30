@@ -1,0 +1,126 @@
+version: "3.0"
+
+nlu:
+  - intent: greet
+    examples: |
+      - hi
+      - hello
+      - hey
+      - good morning
+      - namaste
+      - नमस्ते
+      - ನಮಸ್ಕಾರ
+      - வணக்கம்
+      - హలో
+      - 嗨
+      - Hallo
+      - Guten Morgen
+      - Bonjour
+      - Olá
+      - Hola
+
+  - intent: order_food
+    examples: |
+      - I want [two] quantity [dosa] dish
+      - Add [one] quantity [burger] dish
+      - Get [paneer tikka masala] dish
+      - Place order for [3] quantity [pizzas] dish
+      - I'd like [idli] dish
+      - Can I get [vada]?
+      - Order [biryani]
+      - Put [2] [rolls] in my cart
+      - Two [chicken curry] please
+      - One [masala dosa] with chutney
+      - I’d like one [non veg thali]
+      - Can you bring [three] [idlis]?
+
+  - intent: track_order
+    examples: |
+      - Where is my food?
+      - Status of my order
+      - Is my order ready?
+      - Track my order
+      - When will my food arrive?
+      - Has my order been placed?
+      - Order update
+      - My order hasn't arrived yet
+      - Check order status
+      - How long will this take?
+
+  - intent: browse_menu
+    examples: |
+      - Show me the menu
+      - What do you have?
+      - What items are available?
+      - View menu
+      - Menu list
+      - What's on the menu today?
+      - Could you show the food options?
+      - Can I see what's on offer?
+      - List dishes
+
+  - intent: confirm_order
+    examples: |
+      - Yes
+      - Confirm my order
+      - Proceed
+      - Go ahead
+      - Okay
+      - Sure
+      - Let's place it
+      - Looks good
+      - Yep
+      - Place the order
+      - Make it so
+
+  - intent: cancel_order
+    examples: |
+      - Cancel this
+      - Remove last item
+      - Undo
+      - Take back
+      - Delete that
+      - Don't want this anymore
+      - I changed my mind
+      - Remove previous item
+      - Can I cancel that?
+
+  - intent: give_feedback
+    examples: |
+      - Rate my meal
+      - Leave feedback
+      - How was the food?
+      - Review
+      - Was it good?
+      - Give your opinion
+      - How did you find the service?
+      - I want to complain
+      - I want to praise
+
+  - intent: recommend_menu
+    examples: |
+      - Recommend something
+      - What's popular?
+      - Suggest a dish
+      - Best dish here
+      - What should I try?
+      - Any special today?
+      - What's trending?
+      - I'm confused, suggest something
+      - What's new?
+
+  - intent: unknown
+    examples: |
+      - What is this?
+      - Who made this?
+      - Why am I here?
+      - Explain how it works
+      - What can I do?
+      - What language do you speak?
+
+  - intent: out_of_scope
+    examples: |
+      - What is the weather?
+      - When does the hotel close?
+      - Can I book a room?
+      - What time is check-in?

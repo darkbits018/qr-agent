@@ -1,0 +1,12 @@
+{
+  "0": "browse_menu",
+  "1": "cancel_order",
+  "2": "confirm_order",
+  "3": "give_feedback",
+  "4": "greet",
+  "5": "order_food",
+  "6": "out_of_scope",
+  "7": "recommend_menu",
+  "8": "track_order",
+  "9": "unknown"
+}
