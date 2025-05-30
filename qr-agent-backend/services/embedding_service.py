@@ -29,6 +29,9 @@ class EmbeddingService:
 
         self.indexes[org_id] = index
         self.id_to_item[org_id] = {i: item.id for i, item in enumerate(items)}
+        # Save index to file
+        os.makedirs('static/embeddings', exist_ok=True)
+        faiss.write_index(index, f'static/embeddings/org_{org_id}.index')
         return True
 
     def search_menu_items(self, org_id, query, k=5):
