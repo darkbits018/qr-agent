@@ -11,6 +11,7 @@ class Organization(db.Model):
     subscription_plan = db.Column(db.String(50))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    location = db.Column(db.String(255))
 
     # Relationships
     tables = db.relationship('Table', backref='organization', lazy=True)
