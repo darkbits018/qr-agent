@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from werkzeug.utils import secure_filename
+
 from models import db, Organization, MenuItem, Table, User
 from schemas import MenuSchema, MenuItemSchema, TableSchema, UserSchema
 import pandas as pd
@@ -11,6 +13,12 @@ from services import embedding_service
 from .utils import admin_required, generate_qr_code
 
 bp = Blueprint('organization', __name__, url_prefix='/api/organizations')
+UPLOAD_FOLDER = 'static/uploads/menu_items'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # --------------------------
@@ -56,19 +64,38 @@ def create_menu_item():
         description: Unauthorized
     """
     org_id = get_jwt_identity()['org_id']
-    data = request.get_json()
+    data = request.form
+    files = request.files.getlist('images')
+
+    if not data.get('name') or not data.get('price'):
+        return jsonify({"error": "Name and price are required"}), 400
+
+    image_paths = []
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    for file in files[:4]:  # Limit to 4 images
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            image_paths.append(file_path)
+        else:
+            return jsonify({"error": "Invalid file type"}), 400
 
     item = MenuItem(
         name=data['name'],
-        price=data['price'],
+        price=float(data['price']),
         organization_id=org_id,
         category=data.get('category'),
         dietary_preference=data.get('dietary_preference'),
-        available_times=data.get('available_times', 'all-day')
+        available_times=data.get('available_times', 'all-day'),
+        image1=image_paths[0] if len(image_paths) > 0 else None,
+        image2=image_paths[1] if len(image_paths) > 1 else None,
+        image3=image_paths[2] if len(image_paths) > 2 else None,
+        image4=image_paths[3] if len(image_paths) > 3 else None
     )
     db.session.add(item)
     db.session.commit()
-    embedding_service.build_index_for_organization(org_id)  # Refresh index
+    embedding_service.build_index_for_organization(org_id)
     return jsonify(MenuItemSchema().dump(item)), 201
 
 
@@ -170,6 +197,81 @@ def manage_menu_item(item_id):
 
 
 # Bulk import menu items
+# @bp.route('/menu/items/bulk', methods=['POST'])
+# @jwt_required()
+# @admin_required(roles=['org_admin'])
+# def bulk_import_items():
+#     """
+#     Bulk Import Menu Items
+#     ---
+#     tags:
+#       - Menu Management
+#     requestBody:
+#       required: true
+#       content:
+#         multipart/form-data:
+#           schema:
+#             type: object
+#             properties:
+#               file:
+#                 type: string
+#                 format: binary
+#     responses:
+#       201:
+#         description: Menu items imported successfully
+#       400:
+#         description: Invalid file or format
+#       403:
+#         description: Unauthorized
+#     """
+#     org_id = get_jwt_identity()['org_id']
+#
+#     if 'file' not in request.files:
+#         return jsonify(error="Excel file required"), 400
+#
+#     file = request.files['file']
+#     if not file.filename.endswith(('.xlsx', '.xls')):
+#         return jsonify(error="Only Excel files allowed"), 400
+#
+#     try:
+#         df = pd.read_excel(file)
+#
+#         # Ensure column names match exactly with your database
+#         required_columns = ['name', 'description', 'price', 'image_url',
+#                             'category', 'dietary_preference', 'available_times',
+#                             'is_vegetarian', 'is_available']
+#
+#         if not all(col in df.columns for col in required_columns):
+#             return jsonify(error="Excel columns don't match required format"), 400
+#
+#         for _, row in df.iterrows():
+#             item = MenuItem(
+#                 name=row['name'],
+#                 description=row['description'],
+#                 price=float(row['price']),  # Explicit conversion to float
+#                 image_url=row['image_url'],
+#                 category=row['category'],
+#                 dietary_preference=row['dietary_preference'] if pd.notna(row['dietary_preference']) else None,
+#                 available_times=row['available_times'],
+#                 is_vegetarian=bool(row['is_vegetarian']),
+#                 is_available=bool(row['is_available']),
+#                 organization_id=org_id
+#             )
+#             db.session.add(item)
+#
+#         db.session.commit()
+#         return jsonify(message=f"{len(df)} items imported"), 201
+#
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify(error=f"Import failed: {str(e)}"), 400
+
+
+# --------------------------
+# Table/QR Management
+# --------------------------
+# In qr-agent-backend/blueprints/organization.py
+
 @bp.route('/menu/items/bulk', methods=['POST'])
 @jwt_required()
 @admin_required(roles=['org_admin'])
@@ -209,10 +311,11 @@ def bulk_import_items():
     try:
         df = pd.read_excel(file)
 
-        # Ensure column names match exactly with your database
-        required_columns = ['name', 'description', 'price', 'image_url',
-                            'category', 'dietary_preference', 'available_times',
-                            'is_vegetarian', 'is_available']
+        required_columns = [
+            'name', 'description', 'price', 'category', 'dietary_preference',
+            'available_times', 'is_vegetarian', 'is_available',
+            'image1', 'image2', 'image3', 'image4'
+        ]
 
         if not all(col in df.columns for col in required_columns):
             return jsonify(error="Excel columns don't match required format"), 400
@@ -221,14 +324,17 @@ def bulk_import_items():
             item = MenuItem(
                 name=row['name'],
                 description=row['description'],
-                price=float(row['price']),  # Explicit conversion to float
-                image_url=row['image_url'],
+                price=float(row['price']),
                 category=row['category'],
                 dietary_preference=row['dietary_preference'] if pd.notna(row['dietary_preference']) else None,
                 available_times=row['available_times'],
                 is_vegetarian=bool(row['is_vegetarian']),
                 is_available=bool(row['is_available']),
-                organization_id=org_id
+                organization_id=org_id,
+                image1=row['image1'] if pd.notna(row['image1']) else None,
+                image2=row['image2'] if pd.notna(row['image2']) else None,
+                image3=row['image3'] if pd.notna(row['image3']) else None,
+                image4=row['image4'] if pd.notna(row['image4']) else None
             )
             db.session.add(item)
 
@@ -240,10 +346,6 @@ def bulk_import_items():
         return jsonify(error=f"Import failed: {str(e)}"), 400
 
 
-# --------------------------
-# Table/QR Management
-# --------------------------
-# In qr-agent-backend/blueprints/organization.py
 @bp.route('/tables/bulk', methods=['POST'])
 @jwt_required()
 @admin_required(roles=['org_admin'])

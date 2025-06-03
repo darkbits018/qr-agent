@@ -28,3 +28,11 @@ stories:
     steps:
       - intent: out_of_scope
       - action: utter_unknown
+
+  - story: Customer searches for menu item
+    steps:
+        - intent: search_menu
+          entities:
+            - dish: "paneer"
+        - action: action_search_menu
+        - response: utter_search_menu

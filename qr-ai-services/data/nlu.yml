@@ -124,3 +124,15 @@ nlu:
       - When does the hotel close?
       - Can I book a room?
       - What time is check-in?
+
+  - intent: search_menu
+    examples: |
+      - Show me [chicken] dish options
+      - Do you have [vada]?
+      - Can I get something like [paneer tikka masala]
+      - What dishes are available for [lunch] time
+      - What can I eat during [all-day]?
+      - Any [beverages] available?
+      - What drinks do you have?
+      - Are there any [salads]?
+      - What's on the menu today?

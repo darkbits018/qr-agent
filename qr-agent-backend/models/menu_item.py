@@ -10,6 +10,10 @@ class MenuItem(db.Model):
     price = db.Column(db.Float, nullable=False)
     image_url = db.Column(db.String(255))
     organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+    image1 = db.Column(db.String(255))
+    image2 = db.Column(db.String(255))
+    image3 = db.Column(db.String(255))
+    image4 = db.Column(db.String(255))
 
     # Enhanced categorization
     category = db.Column(db.String(50))  # e.g., "main", "dessert", "appetizer"
@@ -30,5 +34,6 @@ class MenuItem(db.Model):
             "category": self.category,
             "available_times": self.available_times,
             "is_vegetarian": self.is_vegetarian,
-            "is_available": self.is_available
+            "is_available": self.is_available,
+            "images": [self.image1, self.image2, self.image3, self.image4]
         }

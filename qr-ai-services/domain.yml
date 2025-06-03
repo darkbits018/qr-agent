@@ -21,6 +21,9 @@ entities:
   - member_token
   - feedback_rating
   - feedback_comment
+  - category
+  - dietary_preference
+  - available_times
 
 slots:
   org_id:
@@ -43,6 +46,21 @@ slots:
     mappings:
       - type: from_entity
         entity: dish
+  category:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: category
+  dietary_preference:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: dietary_preference
+  available_times:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: available_times
   quantity:
     type: text
     mappings:
@@ -102,6 +120,13 @@ responses:
   utter_goodbye:
     - text: "Thanks for ordering! Enjoy your meal."
     - text: "Hope you enjoyed your food!"
+
+  responses:
+    utter_search_menu:
+      - text: "Looking up items matching '{dish}'..."
+      - text: "Here are some {category} items we have..."
+      - text: "I found some items available during {available_times}"
+      - text: "Let me check what we have for you..."
 
 session_config:
   session_expiration_time: 60
