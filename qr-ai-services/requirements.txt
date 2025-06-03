@@ -1,5 +1,0 @@
-Flask
-flask-jwt-extended
-requests
-python-dotenv
-rasa
