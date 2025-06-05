@@ -1,6 +1,7 @@
-version: "3.0"
+version: "3.1"
 
 nlu:
+
   - intent: greet
     examples: |
       - hi
@@ -18,26 +19,48 @@ nlu:
       - Bonjour
       - Olá
       - Hola
+      - Yo
+      - Hey there
+      - Howdy
+      - Hiya
+      - Good day
+      - Guten Tag
+      - Ciao
 
   - intent: order_food
     examples: |
-      - I want [two] quantity [dosa] dish
-      - Add [one] quantity [burger] dish
-      - Get [paneer tikka masala] dish
-      - Place order for [3] quantity [pizzas] dish
-      - I'd like [idli] dish
-      - Can I get [vada]?
-      - Order [biryani]
-      - Put [2] [rolls] in my cart
-      - Two [chicken curry] please
-      - One [masala dosa] with chutney
-      - I’d like one [non veg thali]
-      - Can you bring [three] [idlis]?
+      - I want [two]{"entity": "quantity"} [dosa]{"entity": "dish"}
+      - Add [one]{"entity": "quantity"} [burger]{"entity": "dish"}
+      - Get [paneer tikka masala]{"entity": "dish"}
+      - Place order for [3]{"entity": "quantity"} [pizzas]{"entity": "dish"}
+      - I'd like [idli]{"entity": "dish"}
+      - Can I get [vada]{"entity": "dish"}?
+      - Order [biryani]{"entity": "dish"}
+      - Put [2]{"entity": "quantity"} [rolls]{"entity": "dish"} in my cart
+      - Two [chicken curry]{"entity": "dish"} please
+      - One [masala dosa]{"entity": "dish"} with chutney
+      - I’d like one [non veg thali]{"entity": "dish"}
+      - Can you bring [three]{"entity": "quantity"} [idlis]{"entity": "dish"}?
+      - I want two dosas
+      - Add one idli
+      - Place order for three pizzas
+      - Get a burger
+      - Can I get a paneer roll?
+      - Order a samosa
+      - Put 4 momos in my cart
+      - I'll take two sandwiches
+      - Add masala dosa to my order
+      - Let me have a chicken tikka
+      - Give me a large pizza
+      - One biryani please
+      - Could I get a veggie burger?
+      - Add extra cheese fries
+      - I'd like a cup of coffee
 
   - intent: track_order
     examples: |
       - Where is my food?
-      - Status of my order
+      - Order status
       - Is my order ready?
       - Track my order
       - When will my food arrive?
@@ -46,6 +69,11 @@ nlu:
       - My order hasn't arrived yet
       - Check order status
       - How long will this take?
+      - Is it being prepared?
+      - What's the current status?
+      - Did the kitchen receive it?
+      - Any updates on my order?
+      - Food delay?
 
   - intent: browse_menu
     examples: |
@@ -58,6 +86,12 @@ nlu:
       - Could you show the food options?
       - Can I see what's on offer?
       - List dishes
+      - What's new on the menu?
+      - Show all items
+      - Display the menu
+      - What can I choose from?
+      - What’s available now?
+      - Let me check the menu
 
   - intent: confirm_order
     examples: |
@@ -65,13 +99,21 @@ nlu:
       - Confirm my order
       - Proceed
       - Go ahead
-      - Okay
+      - Yep
       - Sure
       - Let's place it
       - Looks good
-      - Yep
-      - Place the order
+      - Alright
       - Make it so
+      - I'm sure
+      - Confirm
+      - Go with that
+      - Finalize my order
+      - Place the order
+      - Submit my order
+      - That’s all
+      - No changes needed
+      - Keep it as is
 
   - intent: cancel_order
     examples: |
@@ -84,18 +126,34 @@ nlu:
       - I changed my mind
       - Remove previous item
       - Can I cancel that?
+      - Remove it
+      - Scrap this order
+      - Discard
+      - I don’t want this
+      - Take that out
+      - Revert the order
+      - Cancel entire order
+      - Remove everything
+      - Reset my cart
+      - Clear the cart
 
   - intent: give_feedback
     examples: |
       - Rate my meal
       - Leave feedback
-      - How was the food?
-      - Review
-      - Was it good?
-      - Give your opinion
-      - How did you find the service?
+      - How was the service?
       - I want to complain
       - I want to praise
+      - Was the food good?
+      - How did you find it?
+      - Review my experience
+      - Feedback on the food
+      - Was it okay?
+      - What did you think?
+      - Share your thoughts
+      - Tell me what you thought
+      - How would you rate it?
+      - Any comments?
 
   - intent: recommend_menu
     examples: |
@@ -108,6 +166,111 @@ nlu:
       - What's trending?
       - I'm confused, suggest something
       - What's new?
+      - Any must-try items?
+      - What's your favorite?
+      - Top recommendation
+      - What do most people get?
+      - What goes well together?
+      - What do you recommend?
+      - Help me decide
+
+  - intent: search_menu
+    examples: |
+      - Do you have [chicken]{"entity": "dish"}?
+      - Can I get something like [paneer tikka masala]{"entity": "dish"}?
+      - What dishes are available for [lunch]{"entity": "available_times"} time?
+      - What can I eat during [all-day]{"entity": "available_times"}?
+      - Are there any [beverages]{"entity": "category"} available?
+      - What drinks do you have?
+      - Are there any [salads]{"entity": "category"}?
+      - What's on the menu today?
+      - Show me [biryani]{"entity": "dish"} options
+      - Do you serve pasta?
+      - Looking for desserts
+      - Any vegan options?
+      - Is there gluten-free food?
+      - Find me something spicy
+      - Show all vegetarian items
+      - Search for soups
+      - Find non-veg items
+
+  - intent: view_cart
+    examples: |
+      - What's in my cart?
+      - Show me my order
+      - View cart
+      - Check my items
+      - Let me see what I've ordered
+      - Show my current cart
+      - What did I add?
+      - See what I’ve selected
+      - Display my cart
+      - Review my order
+      - Show me what’s in my basket
+      - What am I ordering?
+      - Cart contents
+      - I want to check my cart
+      - Let me review my selection
+
+  - intent: request_waiter
+    examples: |
+      - I need help
+      - Call the waiter
+      - Waiter please
+      - Need assistance
+      - Someone come over
+      - I require attention
+      - We need a waiter
+      - Can someone help us?
+      - Staff needed
+      - Request waiter
+      - Bring a server
+      - Table needs service
+      - We’re ready to order
+      - Ask for waiter
+      - Waiter required
+      - Need support at table
+      - Hello? Anyone?
+
+  - intent: ask_bill
+    examples: |
+      - How much do I owe?
+      - Show me the bill
+      - What's the total?
+      - Pay now
+      - Bill please
+      - What's the amount due?
+      - Let me settle the bill
+      - How much is it?
+      - Total cost
+      - Generate invoice
+      - Get the bill
+      - Checkout
+      - Payment summary
+      - What's the final amount?
+      - I’m ready to pay
+      - Can I pay now?
+      - Amount to pay
+
+  - intent: modify_order_quantity
+    examples: |
+      - Change dosa quantity to 3
+      - Increase pizza count
+      - Make it 2 burgers
+      - Update my order to 4 samosas
+      - I want 5 instead of 2
+      - Reduce to one
+      - Double the order
+      - Decrease by one
+      - Adjust quantity to 3
+      - Change how many I want
+      - Modify the amount
+      - Alter the count
+      - Update quantity
+      - I want fewer items
+      - I made a mistake in the count
+      - Please correct the number
+      - Let me adjust the numbers
 
   - intent: unknown
     examples: |
@@ -117,6 +280,14 @@ nlu:
       - Explain how it works
       - What can I do?
       - What language do you speak?
+      - How old are you?
+      - Who are you?
+      - What's your name?
+      - Are you human?
+      - Am I talking to a bot?
+      - Say something funny
+      - Do you understand me?
+      - Talk to me
 
   - intent: out_of_scope
     examples: |
@@ -124,15 +295,14 @@ nlu:
       - When does the hotel close?
       - Can I book a room?
       - What time is check-in?
-
-  - intent: search_menu
-    examples: |
-      - Show me [chicken] dish options
-      - Do you have [vada]?
-      - Can I get something like [paneer tikka masala]
-      - What dishes are available for [lunch] time
-      - What can I eat during [all-day]?
-      - Any [beverages] available?
-      - What drinks do you have?
-      - Are there any [salads]?
-      - What's on the menu today?
+      - How far is the airport?
+      - What's the WiFi password?
+      - Is there parking?
+      - Can I bring pets?
+      - What's the dress code?
+      - Do you accept credit cards?
+      - What are your opening hours?
+      - Is there live music?
+      - Do you have Wi-Fi?
+      - Can I smoke inside?
+      - Is there a kids’ menu?

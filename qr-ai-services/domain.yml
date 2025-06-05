@@ -1,4 +1,5 @@
-version: "3.0"
+version: "3.1"
+
 
 intents:
   - greet
@@ -9,8 +10,15 @@ intents:
   - cancel_order
   - give_feedback
   - recommend_menu
+  - view_cart
+  - request_waiter
+  - ask_bill
+  - modify_order_quantity
   - unknown
   - out_of_scope
+  - search_menu        # ← Add this
+  - feedback_comment   # ← Add this
+  - feedback_rating    # ← If used, should also be added
 
 entities:
   - dish
@@ -24,6 +32,8 @@ entities:
   - category
   - dietary_preference
   - available_times
+  - order_id
+  - special_requests
 
 slots:
   org_id:
@@ -31,51 +41,90 @@ slots:
     mappings:
       - type: from_entity
         entity: organization_id
+      - type: custom
+        module: utils
+        method: get_org_id_from_metadata
+
   table_id:
     type: text
     mappings:
       - type: from_entity
         entity: table_id
+      - type: custom
+        module: utils
+        method: get_table_id_from_metadata
+
   group_id:
     type: text
     mappings:
       - type: from_entity
         entity: group_id
+
+  member_token:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: member_token
+
   dish:
     type: text
     mappings:
       - type: from_entity
         entity: dish
+
   category:
     type: text
     mappings:
       - type: from_entity
         entity: category
+
   dietary_preference:
     type: text
     mappings:
       - type: from_entity
         entity: dietary_preference
+
   available_times:
     type: text
     mappings:
       - type: from_entity
         entity: available_times
+
   quantity:
     type: text
     mappings:
       - type: from_entity
         entity: quantity
+
   feedback_rating:
     type: text
     mappings:
       - type: from_entity
         entity: feedback_rating
+
   feedback_comment:
     type: text
     mappings:
       - type: from_entity
         entity: feedback_comment
+
+  order_id:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: order_id
+
+  special_requests:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: special_requests
+
+  fallback_intent:
+    type: bool
+    initial_value: false
+    influence_conversation: false
+    mappings: [ ]
 
 responses:
   utter_greet:
@@ -121,12 +170,23 @@ responses:
     - text: "Thanks for ordering! Enjoy your meal."
     - text: "Hope you enjoyed your food!"
 
-  responses:
-    utter_search_menu:
-      - text: "Looking up items matching '{dish}'..."
-      - text: "Here are some {category} items we have..."
-      - text: "I found some items available during {available_times}"
-      - text: "Let me check what we have for you..."
+  utter_search_menu:
+    - text: "Looking up items matching '{dish}'..."
+    - text: "Here are some {category} items we have..."
+    - text: "I found some items available during {available_times}"
+    - text: "Let me check what we have for you..."
+
+  utter_view_cart:
+    - text: "Let me fetch your cart..."
+    - text: "Here's what you've ordered so far."
+
+  utter_request_waiter:
+    - text: "Waiter has been notified."
+    - text: "Someone will assist you shortly."
+
+  utter_ask_bill:
+    - text: "Getting your bill..."
+    - text: "Here’s your total amount due."
 
 session_config:
   session_expiration_time: 60

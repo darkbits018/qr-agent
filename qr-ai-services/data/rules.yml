@@ -1,7 +1,50 @@
 version: "3.1"
 
 rules:
+
   - rule: Respond to menu search
     steps:
       - intent: search_menu
       - action: action_search_menu
+
+  - rule: Handle order food intent
+    steps:
+      - intent: order_food
+      - action: action_add_to_cart
+
+  - rule: Trigger track order
+    steps:
+      - intent: track_order
+      - action: action_track_order
+
+  - rule: Trigger view cart
+    steps:
+      - intent: view_cart
+      - action: action_view_cart
+
+  - rule: Trigger request waiter
+    steps:
+      - intent: request_waiter
+      - action: action_request_waiter
+
+  - rule: Trigger ask bill
+    steps:
+      - intent: ask_bill
+      - action: action_ask_bill
+
+  - rule: Trigger recommend menu
+    steps:
+      - intent: recommend_menu
+      - action: action_recommend_menu
+
+  - rule: Trigger remove last item
+    steps:
+      - intent: cancel_order
+      - action: action_remove_last_item
+
+  - rule: Use LLM when intent is unknown
+    condition:
+      - slot_was_set:
+          - fallback_intent: true
+    steps:
+      - action: action_llm_fallback
