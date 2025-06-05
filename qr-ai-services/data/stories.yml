@@ -29,10 +29,16 @@ stories:
       - intent: out_of_scope
       - action: utter_unknown
 
-  - story: Customer searches for menu item
+  - story: Search menu by name
     steps:
-        - intent: search_menu
-          entities:
-            - dish: "paneer"
-        - action: action_search_menu
-        - response: utter_search_menu
+      - intent: search_menu
+        entities:
+          - dish: "paneer"
+      - action: action_search_menu
+  - story: Search menu by category
+    steps:
+      - intent: search_menu
+        entities:
+          - category: "beverage"
+          - action: action_search_menu
+
