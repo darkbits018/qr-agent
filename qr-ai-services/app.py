@@ -1,12 +1,22 @@
+import os
 from flask import Flask, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
 import requests
-
 # Import rephrasing modules
 from llm_rephraser import clean_user_input
 from response_rewriter import rewrite_bot_response
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+load_dotenv()
+
+def create_app():
+    app = Flask(__name__)
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']
+    JWTManager(app)
+    return app
+
+app = create_app()
 rasa_nlu_url = "http://localhost:5001/webhooks/rest/webhook"
 
 
@@ -57,3 +67,6 @@ def process_input():
         "intent": rasa_data[0].get('custom') or rasa_data[0].get('intent', {}).get('name'),
         "entities": rasa_data[0].get('entities')
     })
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5002)
