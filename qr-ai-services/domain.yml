@@ -188,6 +188,20 @@ responses:
     - text: "Getting your bill..."
     - text: "Here’s your total amount due."
 
+
+actions:
+  - action_search_menu
+  - action_add_to_cart
+  - action_track_order
+  - action_view_cart
+  - action_request_waiter
+  - action_ask_bill
+  - action_recommend_menu
+  - action_remove_last_item
+  - action_llm_fallback
+  - action_fetch_menu
+  - action_submit_feedback
+
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true

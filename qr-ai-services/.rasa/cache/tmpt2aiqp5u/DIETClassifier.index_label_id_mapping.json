@@ -1,0 +1,17 @@
+{
+  "0": "ask_bill",
+  "1": "browse_menu",
+  "2": "cancel_order",
+  "3": "confirm_order",
+  "4": "give_feedback",
+  "5": "greet",
+  "6": "modify_order_quantity",
+  "7": "order_food",
+  "8": "out_of_scope",
+  "9": "recommend_menu",
+  "10": "request_waiter",
+  "11": "search_menu",
+  "12": "track_order",
+  "13": "unknown",
+  "14": "view_cart"
+}

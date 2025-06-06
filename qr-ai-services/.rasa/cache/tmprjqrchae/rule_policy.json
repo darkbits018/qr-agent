@@ -1,0 +1,31 @@
+{
+  "lookup": {
+    "rules": {
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"search_menu\"}}]": "action_search_menu",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"search_menu\"}}, {\"prev_action\": {\"action_name\": \"action_search_menu\"}, \"user\": {\"intent\": \"search_menu\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"recommend_menu\"}}]": "action_recommend_menu",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"recommend_menu\"}}, {\"prev_action\": {\"action_name\": \"action_recommend_menu\"}, \"user\": {\"intent\": \"recommend_menu\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"cancel_order\"}}]": "action_remove_last_item",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"cancel_order\"}}, {\"prev_action\": {\"action_name\": \"action_remove_last_item\"}, \"user\": {\"intent\": \"cancel_order\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"request_waiter\"}}]": "action_request_waiter",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"request_waiter\"}}, {\"prev_action\": {\"action_name\": \"action_request_waiter\"}, \"user\": {\"intent\": \"request_waiter\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"ask_bill\"}}]": "action_ask_bill",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"ask_bill\"}}, {\"prev_action\": {\"action_name\": \"action_ask_bill\"}, \"user\": {\"intent\": \"ask_bill\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"order_food\"}}]": "action_add_to_cart",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"order_food\"}}, {\"prev_action\": {\"action_name\": \"action_add_to_cart\"}, \"user\": {\"intent\": \"order_food\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"view_cart\"}}]": "action_view_cart",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"view_cart\"}}, {\"prev_action\": {\"action_name\": \"action_view_cart\"}, \"user\": {\"intent\": \"view_cart\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_llm_fallback\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"track_order\"}}]": "action_track_order",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"track_order\"}}, {\"prev_action\": {\"action_name\": \"action_track_order\"}, \"user\": {\"intent\": \"track_order\"}}]": "action_listen"
+    },
+    "rule_only_slots": [],
+    "rule_only_loops": [],
+    "rules_for_loop_unhappy_path": {},
+    "rules_not_in_stories": [
+      "predicting default action with intent back",
+      "predicting default action with intent restart",
+      "predicting default action with intent session_start"
+    ]
+  }
+}

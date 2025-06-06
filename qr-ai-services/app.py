@@ -94,13 +94,26 @@ def process_input():
     }
 
     try:
+        print("Payload sent to Rasa:", payload)
         rasa_response = requests.post(rasa_nlu_url, json=payload)
+        print("Raw response from Rasa:", rasa_response.text)
         rasa_data = rasa_response.json()
     except Exception as e:
         return jsonify({
             "input": user_input,
             "bot_replies": ["Rasa server unreachable. Please try again later."]
         }), 500
+    if not rasa_data:
+        return jsonify({
+            "input": user_input,
+            "cleaned_input": cleaned_input,
+            "bot_replies": ["No response from Rasa."],
+            "intent": None,
+            "entities": [],
+            "jwt_used": bool(identity or claims),
+            "org_id": org_id,
+            "table_id": table_id
+        }), 502
 
     # Step 3: Rewrite bot responses (optional)
     rewritten_replies = [rewrite_bot_response(reply['text']) for reply in rasa_data]

@@ -1,0 +1,44 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-available_times",
+      "2": "I-available_times",
+      "3": "L-available_times",
+      "4": "U-available_times",
+      "5": "B-category",
+      "6": "I-category",
+      "7": "L-category",
+      "8": "U-category",
+      "9": "B-dish",
+      "10": "I-dish",
+      "11": "L-dish",
+      "12": "U-dish",
+      "13": "B-quantity",
+      "14": "I-quantity",
+      "15": "L-quantity",
+      "16": "U-quantity",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-available_times": 1,
+      "I-available_times": 2,
+      "L-available_times": 3,
+      "U-available_times": 4,
+      "B-category": 5,
+      "I-category": 6,
+      "L-category": 7,
+      "U-category": 8,
+      "B-dish": 9,
+      "I-dish": 10,
+      "L-dish": 11,
+      "U-dish": 12,
+      "B-quantity": 13,
+      "I-quantity": 14,
+      "L-quantity": 15,
+      "U-quantity": 16,
+      "O": 0
+    },
+    "num_tags": 17
+  }
+]
