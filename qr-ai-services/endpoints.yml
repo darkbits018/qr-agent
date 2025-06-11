@@ -35,8 +35,11 @@ action_endpoint:
 # Event broker which all conversation events should be streamed to.
 # https://rasa.com/docs/rasa/event-brokers
 
-#event_broker:
-#  url: localhost
-#  username: username
-#  password: password
-#  queue: queue
+event_broker:
+  type: sql
+  dialect: postgresql
+  url: "buddi-db-buddi.k.aivencloud.com"
+  port: 15387
+  db: qr-rasa-conversation
+  username: qr-rasa
+#  password:
