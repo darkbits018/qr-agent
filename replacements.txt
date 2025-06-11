@@ -1,0 +1,1 @@
+regex:username: qr-rasa\n\s*password: [^"\n\r]*=>username: qr-rasa\n  password: "${RASA_DB_PASSWORD}"

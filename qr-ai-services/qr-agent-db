@@ -1,0 +1,1602 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 16.8
+-- Dumped by pg_dump version 16.4
+
+-- Started on 2025-06-11 11:56:50
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 4 (class 2615 OID 2200)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: pg_database_owner
+--
+
+CREATE SCHEMA public;
+
+
+ALTER SCHEMA public OWNER TO pg_database_owner;
+
+--
+-- TOC entry 4522 (class 0 OID 0)
+-- Dependencies: 4
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: pg_database_owner
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 215 (class 1259 OID 25039)
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.alembic_version (
+    version_num character varying(32) NOT NULL
+);
+
+
+ALTER TABLE public.alembic_version OWNER TO "qr-agent";
+
+--
+-- TOC entry 219 (class 1259 OID 25615)
+-- Name: customers; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.customers (
+    id integer NOT NULL,
+    phone character varying(20) NOT NULL,
+    name character varying(100),
+    created_at timestamp without time zone,
+    last_login timestamp without time zone
+);
+
+
+ALTER TABLE public.customers OWNER TO "qr-agent";
+
+--
+-- TOC entry 218 (class 1259 OID 25614)
+-- Name: customers_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.customers_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.customers_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4523 (class 0 OID 0)
+-- Dependencies: 218
+-- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
+
+
+--
+-- TOC entry 235 (class 1259 OID 25731)
+-- Name: feedbacks; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.feedbacks (
+    id integer NOT NULL,
+    order_id integer,
+    rating integer,
+    comment text,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE public.feedbacks OWNER TO "qr-agent";
+
+--
+-- TOC entry 234 (class 1259 OID 25730)
+-- Name: feedbacks_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.feedbacks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.feedbacks_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4524 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: feedbacks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.feedbacks_id_seq OWNED BY public.feedbacks.id;
+
+
+--
+-- TOC entry 241 (class 1259 OID 25788)
+-- Name: group_members; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.group_members (
+    id integer NOT NULL,
+    group_id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    member_token character varying(100),
+    joined_at timestamp without time zone
+);
+
+
+ALTER TABLE public.group_members OWNER TO "qr-agent";
+
+--
+-- TOC entry 240 (class 1259 OID 25787)
+-- Name: group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.group_members_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.group_members_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4525 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.group_members_id_seq OWNED BY public.group_members.id;
+
+
+--
+-- TOC entry 239 (class 1259 OID 25764)
+-- Name: groups; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.groups (
+    id integer NOT NULL,
+    creator_id integer NOT NULL,
+    table_id integer NOT NULL,
+    organization_id integer NOT NULL,
+    join_code character varying(8) NOT NULL,
+    is_active boolean,
+    created_at timestamp without time zone,
+    expires_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.groups OWNER TO "qr-agent";
+
+--
+-- TOC entry 238 (class 1259 OID 25763)
+-- Name: groups_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.groups_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.groups_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4526 (class 0 OID 0)
+-- Dependencies: 238
+-- Name: groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.groups_id_seq OWNED BY public.groups.id;
+
+
+--
+-- TOC entry 227 (class 1259 OID 25664)
+-- Name: kitchen_stations; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.kitchen_stations (
+    id integer NOT NULL,
+    name character varying(50) NOT NULL,
+    capacity integer,
+    organization_id integer
+);
+
+
+ALTER TABLE public.kitchen_stations OWNER TO "qr-agent";
+
+--
+-- TOC entry 226 (class 1259 OID 25663)
+-- Name: kitchen_stations_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.kitchen_stations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.kitchen_stations_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4527 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: kitchen_stations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.kitchen_stations_id_seq OWNED BY public.kitchen_stations.id;
+
+
+--
+-- TOC entry 223 (class 1259 OID 25636)
+-- Name: menu_items; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.menu_items (
+    id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    description text,
+    price double precision NOT NULL,
+    image_url character varying(255),
+    organization_id integer,
+    category character varying(50),
+    dietary_preference character varying(50),
+    available_times character varying(100),
+    is_vegetarian boolean,
+    is_available boolean,
+    image1 character varying(255),
+    image2 character varying(255),
+    image3 character varying(255),
+    image4 character varying(255)
+);
+
+
+ALTER TABLE public.menu_items OWNER TO "qr-agent";
+
+--
+-- TOC entry 222 (class 1259 OID 25635)
+-- Name: menu_items_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.menu_items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.menu_items_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4528 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: menu_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.menu_items_id_seq OWNED BY public.menu_items.id;
+
+
+--
+-- TOC entry 231 (class 1259 OID 25700)
+-- Name: order_items; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.order_items (
+    id integer NOT NULL,
+    order_id integer,
+    menu_item_id integer,
+    quantity integer,
+    special_requests text,
+    price_at_order double precision,
+    member_id integer
+);
+
+
+ALTER TABLE public.order_items OWNER TO "qr-agent";
+
+--
+-- TOC entry 230 (class 1259 OID 25699)
+-- Name: order_items_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.order_items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.order_items_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4529 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: order_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.order_items_id_seq OWNED BY public.order_items.id;
+
+
+--
+-- TOC entry 229 (class 1259 OID 25676)
+-- Name: orders; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.orders (
+    id integer NOT NULL,
+    customer_id integer,
+    table_id integer,
+    status character varying(20),
+    total_amount double precision,
+    created_at timestamp without time zone,
+    accepted_at timestamp without time zone,
+    preparing_at timestamp without time zone,
+    ready_at timestamp without time zone,
+    served_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    special_requests text,
+    prep_instructions text,
+    priority character varying(10),
+    station_assignment_time timestamp without time zone,
+    kitchen_station_id integer,
+    group_id integer,
+    rejected_at timestamp without time zone,
+    on_hold_at timestamp without time zone
+);
+
+
+ALTER TABLE public.orders OWNER TO "qr-agent";
+
+--
+-- TOC entry 228 (class 1259 OID 25675)
+-- Name: orders_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.orders_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.orders_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4530 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: orders_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.orders_id_seq OWNED BY public.orders.id;
+
+
+--
+-- TOC entry 221 (class 1259 OID 25624)
+-- Name: organizations; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.organizations (
+    id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    admin_id integer NOT NULL,
+    subscription_plan character varying(50),
+    is_active boolean,
+    created_at timestamp without time zone,
+    location character varying(255)
+);
+
+
+ALTER TABLE public.organizations OWNER TO "qr-agent";
+
+--
+-- TOC entry 220 (class 1259 OID 25623)
+-- Name: organizations_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.organizations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.organizations_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4531 (class 0 OID 0)
+-- Dependencies: 220
+-- Name: organizations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.organizations_id_seq OWNED BY public.organizations.id;
+
+
+--
+-- TOC entry 233 (class 1259 OID 25719)
+-- Name: payments; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.payments (
+    id integer NOT NULL,
+    order_id integer,
+    amount double precision NOT NULL,
+    method character varying(50),
+    transaction_id character varying(100),
+    status character varying(20),
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE public.payments OWNER TO "qr-agent";
+
+--
+-- TOC entry 232 (class 1259 OID 25718)
+-- Name: payments_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.payments_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.payments_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4532 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
+
+
+--
+-- TOC entry 237 (class 1259 OID 25745)
+-- Name: status_changes; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.status_changes (
+    id integer NOT NULL,
+    order_id integer,
+    from_status character varying(20),
+    to_status character varying(20),
+    "timestamp" timestamp without time zone,
+    changed_by integer,
+    notes text
+);
+
+
+ALTER TABLE public.status_changes OWNER TO "qr-agent";
+
+--
+-- TOC entry 236 (class 1259 OID 25744)
+-- Name: status_changes_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.status_changes_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.status_changes_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4533 (class 0 OID 0)
+-- Dependencies: 236
+-- Name: status_changes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.status_changes_id_seq OWNED BY public.status_changes.id;
+
+
+--
+-- TOC entry 225 (class 1259 OID 25650)
+-- Name: tables; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.tables (
+    id integer NOT NULL,
+    number character varying(20) NOT NULL,
+    qr_code_url text,
+    organization_id integer,
+    is_occupied boolean
+);
+
+
+ALTER TABLE public.tables OWNER TO "qr-agent";
+
+--
+-- TOC entry 224 (class 1259 OID 25649)
+-- Name: tables_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.tables_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.tables_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4534 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: tables_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.tables_id_seq OWNED BY public.tables.id;
+
+
+--
+-- TOC entry 217 (class 1259 OID 25604)
+-- Name: users; Type: TABLE; Schema: public; Owner: qr-agent
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    role character varying(20) NOT NULL,
+    email character varying(100),
+    phone character varying(15),
+    password_hash character varying(256),
+    otp_expiry timestamp without time zone,
+    created_at timestamp without time zone,
+    is_active boolean,
+    organization_id integer
+);
+
+
+ALTER TABLE public.users OWNER TO "qr-agent";
+
+--
+-- TOC entry 216 (class 1259 OID 25603)
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: qr-agent
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.users_id_seq OWNER TO "qr-agent";
+
+--
+-- TOC entry 4535 (class 0 OID 0)
+-- Dependencies: 216
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: qr-agent
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- TOC entry 4277 (class 2604 OID 25618)
+-- Name: customers id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.customers ALTER COLUMN id SET DEFAULT nextval('public.customers_id_seq'::regclass);
+
+
+--
+-- TOC entry 4285 (class 2604 OID 25734)
+-- Name: feedbacks id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.feedbacks ALTER COLUMN id SET DEFAULT nextval('public.feedbacks_id_seq'::regclass);
+
+
+--
+-- TOC entry 4288 (class 2604 OID 25791)
+-- Name: group_members id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.group_members ALTER COLUMN id SET DEFAULT nextval('public.group_members_id_seq'::regclass);
+
+
+--
+-- TOC entry 4287 (class 2604 OID 25767)
+-- Name: groups id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.groups ALTER COLUMN id SET DEFAULT nextval('public.groups_id_seq'::regclass);
+
+
+--
+-- TOC entry 4281 (class 2604 OID 25667)
+-- Name: kitchen_stations id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.kitchen_stations ALTER COLUMN id SET DEFAULT nextval('public.kitchen_stations_id_seq'::regclass);
+
+
+--
+-- TOC entry 4279 (class 2604 OID 25639)
+-- Name: menu_items id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.menu_items ALTER COLUMN id SET DEFAULT nextval('public.menu_items_id_seq'::regclass);
+
+
+--
+-- TOC entry 4283 (class 2604 OID 25703)
+-- Name: order_items id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.order_items ALTER COLUMN id SET DEFAULT nextval('public.order_items_id_seq'::regclass);
+
+
+--
+-- TOC entry 4282 (class 2604 OID 25679)
+-- Name: orders id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.orders ALTER COLUMN id SET DEFAULT nextval('public.orders_id_seq'::regclass);
+
+
+--
+-- TOC entry 4278 (class 2604 OID 25627)
+-- Name: organizations id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.organizations ALTER COLUMN id SET DEFAULT nextval('public.organizations_id_seq'::regclass);
+
+
+--
+-- TOC entry 4284 (class 2604 OID 25722)
+-- Name: payments id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.payments ALTER COLUMN id SET DEFAULT nextval('public.payments_id_seq'::regclass);
+
+
+--
+-- TOC entry 4286 (class 2604 OID 25748)
+-- Name: status_changes id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.status_changes ALTER COLUMN id SET DEFAULT nextval('public.status_changes_id_seq'::regclass);
+
+
+--
+-- TOC entry 4280 (class 2604 OID 25653)
+-- Name: tables id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.tables ALTER COLUMN id SET DEFAULT nextval('public.tables_id_seq'::regclass);
+
+
+--
+-- TOC entry 4276 (class 2604 OID 25607)
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- TOC entry 4490 (class 0 OID 25039)
+-- Dependencies: 215
+-- Data for Name: alembic_version; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.alembic_version (version_num) FROM stdin;
+db9f1aa03d73
+\.
+
+
+--
+-- TOC entry 4494 (class 0 OID 25615)
+-- Dependencies: 219
+-- Data for Name: customers; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.customers (id, phone, name, created_at, last_login) FROM stdin;
+2	8296635241	Afnan Ahmed	2025-05-14 09:58:04.807746	\N
+3	+919986905655	Abhay	2025-05-14 11:32:22.586102	2025-06-06 05:14:45.661816
+1	+918296635241	AFNAN AHMED	2025-05-14 09:19:18.102018	2025-06-06 06:19:23.142146
+\.
+
+
+--
+-- TOC entry 4510 (class 0 OID 25731)
+-- Dependencies: 235
+-- Data for Name: feedbacks; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.feedbacks (id, order_id, rating, comment, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4516 (class 0 OID 25788)
+-- Dependencies: 241
+-- Data for Name: group_members; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.group_members (id, group_id, name, member_token, joined_at) FROM stdin;
+17	9	Abhay	ybDpe4NiRn99eonp3RufovJZ8biNHafh	2025-05-28 05:30:33.579894
+18	10	Abhay	aPOZlKX3Z21Gvgn9Jp3vnsTCdYH7A8EF	2025-05-28 05:30:50.07727
+19	10	Bob	btMRS2RBUTL4VVJsIr9A8qDnF9i6dEdi	2025-05-28 05:31:12.077538
+20	10	joe	Am9dXVMuQIh5BcIhOGaaFJURqCB8G2Zt	2025-05-28 05:31:56.309465
+23	12	Abhay	4NAJjAxUuflRssFjqiYgCRjFzvaXnSyP	2025-05-28 05:45:56.582393
+24	12	Bobby	bhxTcH7anSuXR7GNFJpuEYgIITpvZCcG	2025-05-28 05:46:13.914692
+25	12	joey	gG0i2IqWtQqUTbiHyeCLrmbL5kWbh4qY	2025-05-28 05:46:25.778703
+28	14	H1	lXNtCWmdVpj0kH87gQJ7pPHdFUe5svpO	2025-05-28 06:28:57.307775
+29	14	B1	Qffovk419NAQatINbLrUu0sjGKiHD2XP	2025-05-28 06:29:33.452693
+30	15	Abhay	MsCK84VWuhlP8ln29TvN6l3lTlT1wIRH	2025-05-28 06:55:19.563072
+31	15	Bobby	GbxCVrZX8Xw6R4TPrIBLV94vxhQje6gg	2025-05-28 06:55:31.459627
+32	16	Abhay	w1QYGZjID2N7HA1wjYdbtKYddHyIZLIv	2025-05-28 07:18:18.97466
+33	16	Java	hS32C2URKIbCJL4XxvDTed3FnzI2Lrpw	2025-05-28 07:19:35.906062
+34	16	Ruby	QjTLnlEPERtkkIqfQK5u6U2EqGT8kljH	2025-05-28 07:20:51.47124
+35	17	AFNAN AHMED	TMCBSiBuiGWwqtyCgwLamdPm8fDxx9KF	2025-05-29 06:11:10.724501
+36	17	John Snow	ttDCw0jY9CzOcbpKppulGk51ipgklzCO	2025-05-29 06:12:09.784497
+37	18	AFNAN AHMED	F3O1vQqItJDlqih9o8ugCSKKsz34FsgD	2025-05-29 06:15:59.541275
+38	18	Arya Stark	1gpYSAPkZQ3SdZqRnNxM69J4cM0gPyui	2025-05-29 06:16:43.307753
+39	19	Abhay	NucccjMG8aRh93AMhAi5vV51Gfuv0LHl	2025-05-29 06:49:16.58752
+40	19	jhony 	zxebJlhMNY5cSj03jogqV65IKrYWdyCg	2025-05-29 06:50:39.376061
+41	19	since 1947	jf6KCSuTapBq8ntfQvq42s6e3PtwJHIB	2025-05-29 06:50:58.279302
+42	20	AFNAN AHMED	HxW2faQxA2KAtxn4QGSdRVtCtUP81RRd	2025-05-29 09:08:00.360493
+43	20	Alex	ZCYaiQ76r6ZAmxUa3qcEIHbu67iKdsmB	2025-05-29 09:08:33.042531
+44	21	Test Item1	nKJdCYtNRRKguEsJyNTXNeLaomF0wrfT	2025-05-29 09:45:48.785346
+45	22	Stark	ifzMOWddq6ShZsMEtdpY2iola3K0l2jn	2025-05-30 09:44:26.49256
+46	22	Lannister	vCJLutBkegjQdOVO9WSewm35ZZP5F5q0	2025-05-30 09:45:30.172842
+47	23	AFNAN AHMED	Q8iTlPqNO1ArRU9BSKTVmzLHkyf20hCV	2025-05-30 10:05:24.476439
+48	23	Jack	lUCAQPY8knG33nQU19ymowVT1cSeoUOR	2025-05-30 10:05:51.023257
+49	24	John Snow	xj1mFmNPDd7jHF3LR1xl7SU80qfT2jp2	2025-05-30 10:15:38.5833
+50	25	John Snow	T5h2CnMFB7Bh8RnpaILDI2o3bbbdu6FA	2025-05-30 10:15:51.483234
+51	26	John Snow	IkXYYdRxDxBbQUGrgTgWw3bs8WrMMzUF	2025-05-30 10:16:03.870857
+52	27	John Snow	wugZmwKhsrNBJzVJ9zlsfWQejT144fB2	2025-05-30 10:16:05.559931
+53	28	John Snow	ktS3s6ZSBYXi7nISKCfFmOL2qATyaDlP	2025-05-30 10:16:07.244941
+54	29	John Snow	V6qbGdtoLinwDPreuntRhXZsvfTZnhqG	2025-05-30 10:16:08.930163
+55	30	John Snow	FCsMJKGxzmk4X62BEhcyC7NMPjHKQZge	2025-05-30 10:16:23.705612
+56	31	John Snow	DdUYg34is31ll2ogLDbLXVMYIWTz89dn	2025-05-30 10:16:25.411838
+57	32	John Snow	lhj03eD51AAQyp1iY50U4pLsG6bCmvxo	2025-05-30 10:16:27.100927
+58	33	John Snow	OvUw5PiTpyOdIO58Ms7YJLEMR3Me5nIe	2025-05-30 10:16:28.786802
+59	34	John Snow	tzOMALLtU0etGn0JtKBsIG7ZthKLSF3o	2025-05-30 10:16:30.467553
+60	35	John Snow	hZVJ9xah52YjlZIqzyhJK9wFnbVe7ino	2025-05-30 10:16:32.150073
+61	36	John Snow	tBesJowOd2rAKLkygeGKGDxrUpzO1lVY	2025-05-30 10:16:33.830853
+62	37	John Snow	ed6jMnXX28icuxup3295g4APoedeGCpA	2025-05-30 10:16:35.51085
+63	38	John Snow	2Yx3YWkHjBMoGV6qkoiMqvoHug6cyk6j	2025-05-30 10:16:37.196909
+64	39	John Snow	He1TXuNWvp04b1w0w9AdVKWZzHxe2QGX	2025-05-30 10:16:38.881468
+65	40	John Snow	ee2WIdX5Q1KqGhffEe22J9GMVmDohVST	2025-05-30 10:16:40.57036
+66	41	John Snow	aF5WmsLT2Cz80PB5AhRmm9SPDBlaeYk4	2025-05-30 10:19:21.154928
+67	41	abhay	Xar5FKI8Auz7HBDWf0nD8ofIJjjQfBfN	2025-05-30 10:21:08.609333
+68	42	AFNAN AHMED	eyilHDCPyfEXzWbmMhSIy0D8WGPNmnKk	2025-06-02 05:39:23.919038
+69	42	Peter Parker	XIOf48tDcm7rWb5VtgLHjNf6S65WddFr	2025-06-02 05:40:11.313345
+70	43	AFNAN AHMED	vzxYjPUtyXpmvu5HQ1mCBSs560FWwQP1	2025-06-02 05:57:08.217211
+71	43	Spiderman	ArRDbmhQZDgBRD4ewbKMTwyP34alEUi6	2025-06-02 05:57:49.265506
+\.
+
+
+--
+-- TOC entry 4514 (class 0 OID 25764)
+-- Dependencies: 239
+-- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.groups (id, creator_id, table_id, organization_id, join_code, is_active, created_at, expires_at) FROM stdin;
+9	3	2	1	85TPF4MK	t	2025-05-28 05:30:32.965672	2025-05-28 07:30:32.96343
+10	3	1	1	EZBN116D	t	2025-05-28 05:30:49.472282	2025-05-28 07:30:49.471553
+12	3	2	1	XUV4OCAF	t	2025-05-28 05:45:55.977174	2025-05-28 07:45:55.976683
+14	1	19	6	O0ZNGYQL	t	2025-05-28 06:28:56.698529	2025-05-28 08:28:56.697894
+15	3	3	1	F110W9LG	t	2025-05-28 06:55:18.949359	2025-05-28 08:55:18.946368
+16	3	4	1	1GKW9RT9	t	2025-05-28 07:18:18.367754	2025-05-28 09:18:18.36723
+17	1	20	6	CTREJIB1	t	2025-05-29 06:11:10.116358	2025-05-29 08:11:10.11459
+18	1	20	6	HI7HAOR7	t	2025-05-29 06:15:58.935447	2025-05-29 08:15:58.934763
+19	3	1	1	CVFWONN5	t	2025-05-29 06:49:15.963652	2025-05-29 08:49:15.963053
+20	1	20	6	FJQB2UYZ	t	2025-05-29 09:07:59.746684	2025-05-29 11:07:59.744508
+21	1	20	6	X8PHYMJM	t	2025-05-29 09:45:48.18049	2025-05-29 11:45:48.179802
+22	1	21	6	J67WZC8D	t	2025-05-30 09:44:25.881042	2025-05-30 11:44:25.875061
+23	1	21	6	DNFNEA44	t	2025-05-30 10:05:23.868405	2025-05-30 12:05:23.867121
+24	1	21	6	O287UKM7	t	2025-05-30 10:15:37.976567	2025-05-30 12:15:37.975898
+25	1	21	6	KVARATI6	t	2025-05-30 10:15:50.876196	2025-05-30 12:15:50.875313
+26	1	21	6	MXLY1NEQ	t	2025-05-30 10:16:03.263917	2025-05-30 12:16:03.262429
+27	1	21	6	1U6CCOU2	t	2025-05-30 10:16:04.952484	2025-05-30 12:16:04.951779
+28	1	21	6	HKF3MO8N	t	2025-05-30 10:16:06.6383	2025-05-30 12:16:06.637665
+29	1	21	6	B3H604BH	t	2025-05-30 10:16:08.320419	2025-05-30 12:16:08.319727
+30	1	21	6	E71WFGWK	t	2025-05-30 10:16:23.097946	2025-05-30 12:16:23.097276
+31	1	21	6	29DTQ901	t	2025-05-30 10:16:24.8021	2025-05-30 12:16:24.801426
+32	1	21	6	J0GRP62R	t	2025-05-30 10:16:26.494226	2025-05-30 12:16:26.493642
+33	1	21	6	MY75NYDC	t	2025-05-30 10:16:28.180278	2025-05-30 12:16:28.1796
+34	1	21	6	DOPNOCXU	t	2025-05-30 10:16:29.860091	2025-05-30 12:16:29.859444
+35	1	21	6	JEBX90V8	t	2025-05-30 10:16:31.542308	2025-05-30 12:16:31.54169
+36	1	21	6	FPAPGTLL	t	2025-05-30 10:16:33.224114	2025-05-30 12:16:33.223463
+37	1	21	6	M0O5MLVX	t	2025-05-30 10:16:34.904006	2025-05-30 12:16:34.903299
+38	1	21	6	IQ0QY9ZD	t	2025-05-30 10:16:36.58573	2025-05-30 12:16:36.584999
+39	1	21	6	DJYAORDN	t	2025-05-30 10:16:38.27338	2025-05-30 12:16:38.27278
+40	1	21	6	YEB7BR0U	t	2025-05-30 10:16:39.963831	2025-05-30 12:16:39.963193
+41	1	21	6	8CNTRFGK	t	2025-05-30 10:19:20.548651	2025-05-30 12:19:20.548053
+42	1	22	7	N88YTWQP	t	2025-06-02 05:39:23.321075	2025-06-02 07:39:23.319052
+43	1	23	7	XYKBHSLN	t	2025-06-02 05:57:07.642967	2025-06-02 07:57:07.642231
+\.
+
+
+--
+-- TOC entry 4502 (class 0 OID 25664)
+-- Dependencies: 227
+-- Data for Name: kitchen_stations; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.kitchen_stations (id, name, capacity, organization_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4498 (class 0 OID 25636)
+-- Dependencies: 223
+-- Data for Name: menu_items; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.menu_items (id, name, description, price, image_url, organization_id, category, dietary_preference, available_times, is_vegetarian, is_available, image1, image2, image3, image4) FROM stdin;
+1	Chapati	\N	25	\N	1	Main Course	Veg	All Times	f	t	\N	\N	\N	\N
+2	Margherita Pizza	Classic pizza with fresh mozzarella and basil.	9.99	https://unsplash.com/photos/8manzosRGPE	1	main	vegetarian	lunch,dinner	t	t	\N	\N	\N	\N
+3	Pepperoni Pizza	Spicy pepperoni and cheese on tomato base.	11.99	https://unsplash.com/photos/7BWz4bq6L2w	1	main	\N	lunch,dinner	f	t	\N	\N	\N	\N
+4	Caesar Salad	Crisp romaine with Caesar dressing.	6.5	https://unsplash.com/photos/7U6xYj6sD9Q	1	starter	gluten-free	all-day	f	t	\N	\N	\N	\N
+5	Vegan Buddha Bowl	Brown rice, chickpeas, and veggies.	10.5	https://unsplash.com/photos/9wg5jCEPBsw	1	main	vegan	lunch	t	t	\N	\N	\N	\N
+6	Tomato Soup	Rich and creamy tomato soup.	5	https://unsplash.com/photos/8manzosRGPE	1	starter	vegetarian	lunch,dinner	t	t	\N	\N	\N	\N
+7	Chicken Burger	Grilled chicken with fresh lettuce.	8.5	https://unsplash.com/photos/7KLa-xLbSXA	1	main	\N	lunch,dinner	f	t	\N	\N	\N	\N
+8	French Fries	Crispy golden fries.	3.99	https://unsplash.com/photos/2d4lAQAlbDAA	1	side	vegan	all-day	t	t	\N	\N	\N	\N
+10	Mango Smoothie	Fresh mango blended with yogurt.	4.75	https://unsplash.com/photos/8manzosRGPE	1	beverage	vegetarian	breakfast,all-day	t	t	\N	\N	\N	\N
+11	Butter Chicken	Creamy tomato-based chicken curry.	12.99	https://unsplash.com/photos/6VPEOdpFNAs	1	main	\N	dinner	f	t	\N	\N	\N	\N
+12	Greek Salad	Cucumber, tomato, olives & feta.	6.75	https://unsplash.com/photos/9wg5jCEPBsw	1	starter	vegetarian	all-day	t	t	\N	\N	\N	\N
+13	Iced Tea	Chilled brewed tea with lemon.	2.99	https://unsplash.com/photos/0VGG7cqTwCo	1	beverage	vegan	all-day	t	t	\N	\N	\N	\N
+14	Chocolate Cake	Rich layered chocolate cake.	5.25	https://unsplash.com/photos/8manzosRGPE	1	dessert	vegetarian	all-day	t	t	\N	\N	\N	\N
+15	Pasta Alfredo	Creamy alfredo sauce pasta.	11	https://unsplash.com/photos/2gDwlIim3Uw	1	main	vegetarian	lunch,dinner	t	t	\N	\N	\N	\N
+16	Fruit Salad	Seasonal fresh fruits.	4.5	https://unsplash.com/photos/5QgIuuBxKwM	1	dessert	vegan	breakfast,all-day	t	t	\N	\N	\N	\N
+17	Grilled Salmon	Salmon fillet with herbs.	14.99	https://unsplash.com/photos/5QgIuuBxKwM	1	main	\N	dinner	f	t	\N	\N	\N	\N
+18	Veggie Omelette	Omelette with mixed veggies.	6.25	https://unsplash.com/photos/7KLa-xLbSXA	1	breakfast	vegetarian	breakfast	t	t	\N	\N	\N	\N
+19	Lemonade	Freshly squeezed lemonade.	2.5	https://unsplash.com/photos/8manzosRGPE	1	beverage	vegan	all-day	t	t	\N	\N	\N	\N
+20	Garlic Bread	Toasted bread with garlic butter.	3.5	https://unsplash.com/photos/7U6xYj6sD9Q	1	starter	vegetarian	lunch,dinner	t	t	\N	\N	\N	\N
+23	burger	\N	50	\N	4	Appetizer	Non-Veg	All Times	f	t	\N	\N	\N	\N
+24	Burger1	\N	51	\N	6	Appetizer	Non-Veg	All Times	f	t	\N	\N	\N	\N
+25	Pizza1	\N	199	\N	6	Main Course	Non-Veg	All Times	f	t	\N	\N	\N	\N
+26	LimeJuice1	\N	99	\N	6	Beverage	Veg	All Times	f	t	\N	\N	\N	\N
+27	ButterChicken1	\N	299	\N	6	Main Course	Non-Veg	All Times, Dinner	f	t	\N	\N	\N	\N
+28	Butter Naan	\N	27	\N	6	Main Course	Veg	All Times	f	t	\N	\N	\N	\N
+29	ACheese Pizza	\N	149	\N	6	Main Course	Non-Veg	All Times	f	t	\N	\N	\N	\N
+30	AFries	\N	89	\N	6	Appetizer	Veg	All Times	f	t	\N	\N	\N	\N
+31	Chicken Burger	\N	99	\N	7	Appetizer	Non-Veg	All Times	f	t	\N	\N	\N	\N
+32	French fries	\N	89	\N	7	Appetizer	Veg	All Times, Dinner	f	t	\N	\N	\N	\N
+33	Cheese pizza	\N	199	\N	7	Main Course	Veg	Dinner, Lunch	f	t	\N	\N	\N	\N
+34	Club Sandwich	\N	128	\N	7	Appetizer	Contains Egg	Breakfast, Dinner	f	t	\N	\N	\N	\N
+35	Lemonade	\N	79	\N	7	Beverage	Veg	All Times	f	t	\N	\N	\N	\N
+\.
+
+
+--
+-- TOC entry 4506 (class 0 OID 25700)
+-- Dependencies: 231
+-- Data for Name: order_items; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.order_items (id, order_id, menu_item_id, quantity, special_requests, price_at_order, member_id) FROM stdin;
+10	3	1	2	\N	25	18
+11	3	7	2	\N	8.5	18
+12	3	3	2	\N	11.99	19
+13	3	4	2	\N	6.5	19
+14	3	5	2	\N	10.5	20
+15	3	6	2	\N	5	20
+16	4	2	2	\N	9.99	23
+17	4	7	2	\N	8.5	23
+18	4	6	2	\N	5	25
+19	4	7	2	\N	8.5	25
+20	4	7	2	\N	8.5	24
+21	4	4	2	\N	6.5	24
+22	5	24	1	\N	51	\N
+23	6	7	2	\N	8.5	30
+24	6	4	2	\N	6.5	31
+25	6	5	2	\N	10.5	31
+26	5	30	1	\N	89	\N
+27	5	27	1	\N	299	\N
+28	7	2	2	\N	9.99	32
+29	8	2	2	\N	9.99	39
+30	8	5	2	\N	10.5	40
+31	8	6	2	\N	5	40
+32	8	7	2	\N	8.5	40
+33	8	7	2	\N	8.5	41
+34	8	5	2	\N	10.5	41
+38	10	30	1	\N	89	38
+39	11	24	4	\N	51	43
+41	12	30	1	\N	89	46
+42	13	24	1	\N	51	48
+43	14	24	2	\N	51	66
+44	14	26	1	\N	99	67
+45	15	26	1	\N	99	66
+46	15	30	1	\N	89	67
+47	16	26	1	\N	99	66
+48	16	30	1	\N	89	67
+49	17	26	1	\N	99	66
+50	17	30	1	\N	89	67
+51	18	26	1	\N	99	66
+52	18	24	1	\N	51	67
+53	19	26	1	\N	99	66
+54	19	30	1	\N	89	67
+55	20	24	1	\N	51	66
+56	20	30	1	\N	89	67
+57	21	31	1	\N	99	69
+58	21	32	1	\N	89	69
+59	21	33	1	\N	199	69
+60	21	35	1	\N	79	69
+61	22	31	1	\N	99	71
+62	22	32	1	\N	89	71
+63	22	33	1	\N	199	71
+64	22	35	1	\N	79	71
+65	23	31	1	\N	99	71
+66	23	32	1	\N	89	71
+67	23	33	1	\N	199	71
+68	23	35	1	\N	79	71
+69	24	31	1	\N	99	71
+70	24	32	1	\N	89	71
+71	24	35	1	\N	79	71
+72	25	32	1	\N	89	71
+73	25	34	1	\N	128	71
+\.
+
+
+--
+-- TOC entry 4504 (class 0 OID 25676)
+-- Dependencies: 229
+-- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.orders (id, customer_id, table_id, status, total_amount, created_at, accepted_at, preparing_at, ready_at, served_at, completed_at, special_requests, prep_instructions, priority, station_assignment_time, kitchen_station_id, group_id, rejected_at, on_hold_at) FROM stdin;
+3	\N	1	cart	\N	2025-05-28 05:33:07.589513	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	10	\N	\N
+4	\N	2	cart	\N	2025-05-28 05:47:27.292511	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	12	\N	\N
+5	1	19	cart	\N	2025-05-28 06:35:27.818978	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	\N	\N	\N
+6	\N	3	cart	\N	2025-05-28 06:56:08.74884	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	15	\N	\N
+7	\N	4	cart	\N	2025-05-28 07:21:19.480845	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	16	\N	\N
+8	\N	3	cart	\N	2025-05-29 06:51:43.181042	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	19	\N	\N
+9	\N	20	cart	\N	2025-05-29 07:11:44.464636	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	17	\N	\N
+10	\N	20	cart	\N	2025-05-29 07:16:10.664521	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	18	\N	\N
+11	\N	20	cart	\N	2025-05-29 09:08:41.774839	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	20	\N	\N
+12	\N	21	cart	\N	2025-05-30 09:45:41.121602	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	22	\N	\N
+13	\N	21	cart	\N	2025-05-30 10:06:11.073815	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	23	\N	\N
+14	\N	21	pending	201	2025-05-30 10:42:49.006047	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+15	\N	21	pending	188	2025-05-30 10:53:01.355928	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+16	\N	21	pending	188	2025-05-30 11:03:40.135972	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+17	\N	21	pending	188	2025-05-30 11:15:01.720111	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+18	\N	21	pending	150	2025-05-30 11:34:22.020712	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+19	\N	21	pending	188	2025-05-30 11:39:49.508888	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+20	\N	21	pending	140	2025-05-30 11:45:34.078404	\N	\N	\N	\N	\N	\N	\N	normal	\N	\N	41	\N	\N
+21	\N	22	accepted	466	2025-06-02 05:47:27.701505	2025-06-02 07:20:30.139411	\N	\N	\N	\N	\N	\N	normal	\N	\N	42	\N	\N
+22	\N	23	accepted	466	2025-06-02 05:59:02.609149	2025-06-02 07:30:09.334703	\N	\N	\N	\N	\N	\N	normal	\N	\N	43	\N	\N
+23	\N	23	accepted	466	2025-06-02 07:31:26.128512	2025-06-02 07:48:58.27384	\N	\N	\N	\N	\N	\N	normal	\N	\N	43	\N	\N
+24	\N	23	accepted	267	2025-06-02 07:50:33.951898	2025-06-02 07:50:52.658592	\N	\N	\N	\N	\N	\N	normal	\N	\N	43	\N	\N
+25	\N	23	accepted	217	2025-06-02 07:56:22.684046	2025-06-02 07:56:43.207962	\N	\N	\N	\N	\N	\N	normal	\N	\N	43	\N	\N
+\.
+
+
+--
+-- TOC entry 4496 (class 0 OID 25624)
+-- Dependencies: 221
+-- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.organizations (id, name, admin_id, subscription_plan, is_active, created_at, location) FROM stdin;
+1	Citrus	4	\N	t	2025-05-14 10:51:32.595948	\N
+2	Abhay 	7	\N	t	2025-05-15 10:35:45.995964	\N
+3	AfourD	8	\N	t	2025-05-15 11:02:17.800815	\N
+4	sri cafe	9	\N	t	2025-05-19 12:14:42.81362	\N
+5	Royal Cafe	10	\N	t	2025-05-20 06:39:45.84714	\N
+6	Bakes	14	\N	t	2025-05-22 06:29:51.040345	\N
+7	Citrus Trail	16	\N	t	2025-06-02 05:27:16.997963	\N
+\.
+
+
+--
+-- TOC entry 4508 (class 0 OID 25719)
+-- Dependencies: 233
+-- Data for Name: payments; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.payments (id, order_id, amount, method, transaction_id, status, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4512 (class 0 OID 25745)
+-- Dependencies: 237
+-- Data for Name: status_changes; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.status_changes (id, order_id, from_status, to_status, "timestamp", changed_by, notes) FROM stdin;
+1	21	accepted	accepted	2025-06-02 07:20:30.139411	17	
+2	22	accepted	accepted	2025-06-02 07:30:09.334703	17	
+3	23	accepted	accepted	2025-06-02 07:48:58.27384	17	
+4	24	accepted	accepted	2025-06-02 07:50:52.658592	17	
+5	25	accepted	accepted	2025-06-02 07:56:43.207962	17	
+\.
+
+
+--
+-- TOC entry 4500 (class 0 OID 25650)
+-- Dependencies: 225
+-- Data for Name: tables; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.tables (id, number, qr_code_url, organization_id, is_occupied) FROM stdin;
+1	Table 1	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC9klEQVR4nO2cTYrcMBCFX8WGLGWYA+Qo8g1ypJwpN7COMjeQlw0WlUVJspxJCAweNB09LYxb8odleNSfyy2Kd4z05T0UQIwYMWLEiBEjRozYDViQPAAAsu4iCEsSWfcZsiKV9aXjJon1wqCqqro5VVU9oBon1Q0A4NTOdHPHb9c9xbMRux1L2VCEJYn8iJNlyOcZQrE0HTdJrA82v5lxEQjfHqYIBQ4I3E13I/YfYWZB/OsMkSUJfPzIuxH79Fi1JZMCSACQZgSZDoRlggIJ5nJ8W6V9imcjdje2i4hI1oxu7iG6uYcgLADCAliKs3bdJLFOWNZFaygmhY9Q8REK7HOeu+NuxJ4TqxnuUX7GSeHrAe5APtSLmQmPhhWVAACcKnxRgs15PeygGgHWS8bETvOAkspMNmFnG4CztFY0RJWMhVVbMqnZEtOG+RnVfEnMUqFKhsa8PgT+VURVHwIzKK+zaUhkmUw+fTdJrBdWPI69vakG5RKz5uAk5lXakuGwqhJYXGJSOcPVuppDF3qcEbGLSjTnOCaGzalaROsbqVAlA2JtR0DTIACUHgJzO8XZMBMeErtW1abGu2TfE1HjEtZLRsUalVjkAZfLaIDLUikFNcYlo2JtvSSHJEUbZjdiraoBYI4zJtZmwlc/U+byKlCERJUMh7VxiS9Fk/zKT/8Qq9CWjIhdOxqT5IO1lkRFWJPkkuv+olK61p7i2YjdhTWZcHknnNPhUiUpDmgDc5xRsWpL0qylmVEBpBnYXw6E7wc0LIDAxV6bJNYZq+XUMrbyUu+svZ41N+Y4Y2KXLiTkLoHSe3Rq42C9hFi1EUCoXQJhSQLsX9umgbD03CSxTtilQl9MhhmUvHqUghrYOUCsHeFbjlJElstnoB9yN2KfHXv7Beg+Q3xMtqAA1D4I9T9fULXyFM9G7C7sb/85UFsFmmZp9peMjtVv+8ICyOoO6LbPANyRPxaGU5W16yaJdcJE/33N28H/aCRGjBgxYsSIESPWA/sFhrkEUUlCNsoAAAAASUVORK5CYII=	1	f
+2	Table 2	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC5klEQVR4nO2cTYrjMBBGX40MvVTDHCBHkW82zM2co/QBGuRlwKZmoZKt/Kw6GYJRGdqk7X4kIkXVV5/KLcoPjvXXTyhwzDHHHHPMMcccc8yxZzBUVVWn7dcpqpIy6BQXSDkoSZd6P6qq6nKItTn2asy+fWAWAYLCPKBTvAhwG02HWptjz2L1248LEBdUc9A9aJrThGUazyWOnU8X0YlVRD6DAkFFPv/Xuzl2TCx9faiMgGpeRcZZZFctL383xw6BDfVFUGAtr7X8zJ8AwZRral3aQ6zNsVdhD3qc5eHJDtclPWIWJfsxEapwzRThSrr9I4+SvrC2x0kZSLpYKzMBOmF+yXXzc4i1OfZiLH0NQNTS1JR4AZA/an4JsIr7JX1ipl7PY1iAdbBT/B60nACYf6tAWIT4jg/p2JuxK12SQ6k9uySx2lO9etclfWJtj7PJjyZoVK0KVYXiUdIhtkWJSdPba7uYbbsdj5K+sOqqxW+BWYD4PVRDDeqrdYCYd1/tEGtz7FUYe3UhqVpNMTViMwSWQfIuYjyX9IU16rVeCbpPlVhsZGxP2KOkZ+wsIo0Q+Xu6CMzmodQ94WZ3+Ehrc+xpbKs4li2AbTgtLphhn7fRNc8lHWPnk4UAsNY0UnLJRWQkqIxl2/iNH9Kxd2FXXW/GBl3ZNoFtAtbVa9fYttunplnLtQx1JjrorRXrUdIb1vY4jRppkoeFSr3rUdIxNluPo/r1UcbnRU4LMgIQLwLzh+uSTrGm4lhNqVNIZXtvmzQpacQrTpfY/axavDbZYq0zvtvXPXYWO6zYiIhNu5Y6s0q1T974IR17N1YrDrAKKQd73GIqt8uEvbj32jlWQyDVYmPTBMVkE5ER2EYdj7U2x57E7p4Atdgwa20fPKk2vesSxwBWUdW621emkFiLTe+5pE/srhMu/lpuRwUap81zSZfY42f7ylBSrhdTrg697+N0iYn/j0bHHHPMMcccc8wxxw6D/QOi/ibTTgeOPgAAAABJRU5ErkJggg==	1	f
+3	Table 3	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAADF0lEQVR4nO2cUaqkMBBFT42B/ow7mKXoDmZNszNdyltAQ/xsSKj5SKJ53QMDb/oRxPKjsdWDCRQ3dSuJonzhSD++QoFhhhlmmGGGGWaYYYa9AVulHKzikBkQGZOwjiAzqd4fOzbSsF4Yqqqqi1dV1Uj+WXy5xpT/xqfnTtE3w96FuXqSHPg7wKCwuSjThwDbiEwhwTrDbptP0TfD3oW55wvrr7sDfxcAFKL7S0nlFH0z7Puw7aa6bA5diqog8/e9zbAzYLuWDAokgCTg7451HhCo48zUSsop+mbYu7FNREQc4CO6AOAfoouPZKMjIiJz10Ya1gkrWvJJKJApoJJvbjeVKfCUm5yib4a9C2sd7uIjsPtfDYOqhuPRwZzwRbESJU2o0MZGHnumMChTACa1KLkgVkac4n+TAx8QvCLTkhwwRIEkyjZE6dNIwzpjVUvCoEyqeow4WTyK+SnPmZZcE6tO2Ed0zVKRnLKNUGQEwN+dwBB1HUOHRhrWGdvzkjp7k1UlDFpnb2LOS0oya1pyYWyVmwJJZCaJ/v75EPbBhrWZHe7YSMN6YdUJQy7JH3Y4G52iKsd0sGnJlbFBZfYPge2WFUTmUrXP+lKvdW2kYX2wxuPklGS/Bru0THt9zTzOlbE1JyKpZCOruOqEN1fykiNN6dVIw3phe14yZPEopZJcoYdqeXZ9sQr9FbHGCR81+HxnCiVyik+2eZzLYq2W5PTj0BKNzSxPFRmLkgtin2f7IjTDTqAuWANKHmtRckWsjRINQ1sWWaAkJwvPa+1P0TfD3oU1VbVjTDlK8qWqBtRpQIuSC2KftKSqBdn1+jIKHWuU9lT3FH0z7M3YsbcP6tojNtmrJCkXZWXu2UjDemN+t8MfIuAfUpxwEyrkddL9GmlYJ+xlb986D5FcgB2pa9O2cmJ7+66Jveztm8IoyiZ1Xf02IpMmp+v8/28z7JzYS5TAEPOurXz4mM8EfxfTkmtir98cCDSL5l9NsHmcC2JtvQSgOmGAWrXn2IpjVbVLYqL/fub1sG80GmaYYYYZZphhhhnWA/sDSijHOAhtOPQAAAAASUVORK5CYII=	1	f
+4	Table 4	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAACzklEQVR4nO2cTW7bMBSEv1cK8JIGeoAcRb5Z0ZtJR8kBAkhLAzKmC/4pcbJJ0roCHxeCbOmDJHhAzRuSNvGJdvvxGQocc8wxxxxzzDHHHHPsKxiSJE3140QQ4wKa4gbjEsSorRyPkqTtEM/m2Hdj+dev3wfBOqApXg14q6ZDPZtjX8XKrx83IG5kqRTR7DYToMn7EseA+QzScjOzcxAQZHb+W1dz7JjY+HxKskhSuaxmzbV8+9UcOxYWJC3lw7hkX0JyKACjpHvsk1dz7FDYfY0Tt3c3ubkv6RHLKmltIiQzKy1kMzu+PclV0he2r3HGBXI2EnP/kuMTbUhLkPclfWPrAEQJ1tPOodgv5bwEuJnnJX1iQ9kJG/P5ZYB4NYgvg9IGgPWnDMJmxEfcpGMPxoovWUL1JewsSYrRalbvvqRPjLfaSMb1lXKAoOJQXCUdYtW9ZjEUCyvtjGvJ5XGV9IkNbVfz5WYQt0FzdaysZ4DbAHHxVK1TrL5d8l6KWMfav7SupZ7ifUl32C5VK9+EZElKSlINC66S3rHVLGtjAeanq7UMpYwJ70aHD/Vsjn0V22WvarOQcgC7pey1FT/uXh1jPQnSyF4dE45XswtBdqmjw4+9Scf+PdayVwG3XNvMFlK3YuPzgOanDbEaVSaHeDbHvgurqVqJzCaguVfqxJNdFOtvnN6wVra8muMatdMGUEXjKukR26XxOSpZ8mzXErZmH5sPuEp6xHYJfe5GmkCWkA9MQJ5z4irpEbufqxZfh2yxTUry0b7OsdlyA25pL892XU+l+Il5Uc7DbtKxR2PljZPaKMkuUGWR62TPXvvEPljbR1nHN7UzPXt1rLTZTkkbdkkhW61sngf0+/xf3KRjD+5LJth3KO2oz2jsF7urhCWVf6YoR7N8vBLuFnt/bV+bQwCkhTpNQ66S7jDz/2h0zDHHHHPMMcccc+ww2B/0W0Ep0zNO+AAAAABJRU5ErkJggg==	1	f
+5	Table 5	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC+klEQVR4nO2cS4rcMBCGv4oFWapvJN8gR8rV7KPkAAPyskGistDD6p6sBjOOcXnl10dLUNTjr2qL8oUj//gKBYYZZphhhhlmmGGGGXYAtko9WB8gMyDyyP0yt+ePExdp2FkYqqqqi1dV1TReLl6VoAldfHp77xJ7M+wozLWT7MB/ANsDZXNJwh8plxJihnWGXjZfYm+GHYW59xvrr+QkaBYAFJL7h6Ryib0ZdhT2yUrYfiqrgLJNqfqS5aBfM+yaWLeSSYEMkEXxH451nhBocSaMLuUSezPsaGwTEREH+NSe+afo4hOl0BERkfnURRp2ElZ9yYujQPCTSnm4/VQJkbfc5BJ7M+wo7LX0TcBeE8dJVeP+6mSVsGEUOwBgc4OqRoiTEmIW+R3PX6Rh346NekmI2YEHwSsSluyAKUnJaLcpyTmLNOxkrEYcVdXiMmAqiishArX4qe8R1CLODbHRSvCpRJeSjexGU+sey0vuijUriaBLyUsmLYlr7d7sljN1gzIruRfWahxgl0pKjdM7gOXeUkKRWckNsW4lNboM/d8edvYWsfkSw/BPqX2cB8hcVXuRmdr8k/nAXzPsMtjgS6pDab6E7lrGjNZ8yY2xELM0X+JgFdcq4c3B+shCr4lPW6RhZ2EveYlXLbbRnYdqkV2bXtL0+0vszbCjsLESHno2fhTZasljesltsaHbR1BtsmtNP16U2fHBJfZm2FFYt4NETVzjqNC3EhlqHmtWckdstJISYnavEmsU0oX3WftL7M2wg7G1jKk9Za9sdGFSmZsvEXmATQ7cExsyjyFDoZU8RYrtM0qmvd4a2//bxybSRpGkqyS5iLIyn7lIw87GfE9OSnsvS01TBlOhzEmft0jDTsJ6VtpqnIXeE+6v1DObHLgr9slKqrTWpwQi1D8Lm5UYth+T6uKfbcS1zZzIvN/7DxZp2Hdin785EOlD8z3Y+H3k1XzJDbGXWTWgVcJACTtxH08yVe2umNg3Gg0zzDDDDDPMMMMMuwz2F+aU6Z22RopjAAAAAElFTkSuQmCC	1	f
+7	Table 1	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC80lEQVR4nO2cS66jOhRF13kgpUmkO4A7FN+Z1dTIUO4MTDMSaL+GPzhJvU4Vr1LIxw0UA0tgZcvn42NM/ELb/vkVChxzzDHHHHPMMcccc+wA7Ga5wWIGbMbtupmZjdgXW7l+feNLOvYuDEmS5kmStKYuQRJMK5oBzdP6dN8pxubYUVj991eyLJqDBAxZPjPgKnGsNvsRBxHiZjCtcLv+n09z7K/Hxv84v+ULYd5GQtyOeZpj58SqSgYBG7BcZCwfTU42/QxtlvYUY3PsKKz4JbU7Pzsn+ZCb+yU9YsWwNBPFIGMakuNK+B7TuUOe5tg5sYcYB5BiVoQUQVIOfpqbfS7pDSt/fATNDOkXIQ7FCk0SQSuE6JFwr1gzl6QJJaj6IGSpJG3kq66SDrFqRHJilayNMpeECLB3XSU9YjXGqcZGexa2NUUkqbjF6RFr5xLFoZ1VQiSLJmhNzqxHwn1i7AIp1uVx8iBHO0UvrpIOsT24Lct701plocY5UV0xdpX0iuX1vM2kCGafEjcba8gzyMwuqut+ZxqbY0dhydgsF5ldQfoekXS3pA3YLC8Rv/MlHXsX1volQE6opW6xPZKyKXK/pE+srUGba541peSntgopN49xesSeKxqpWbWHILicc5V0iT1UDlSphFjWhPeKxiQVV0mPWKlCmiLANgpALLn2SCwf6QYDrKZUTjE2xw7HNoPlohzofN4tRb23a77QOidnG5tjR2GDuH3eDaa7aV5GYBmxH1opO3MuesX+7Es69h7sYR3nwY8tadfis3rlQL9Y9ktuX7mvELcRGGQhfqywANVh+d2nOXZO7GVvX7N/a79peg6DTjE2xw7HtrIJeLlI+r5oL2bUvJjZF82y8bnG5thvYq87QMkljCULKz2Vwfpc0h32urdvilj4Nrhdo2AZV5juRlDjnJxibI4dhf30mwN7PJNLS+LDhwd8LukNe93bBzn+TavDu9lRPrhKusPMv9HomGOOOeaYY4455thpsH8BZfgP6BFKrJcAAAAASUVORK5CYII=	4	f
+20	Table100	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC3UlEQVR4nO2czY3bMBSE54UC9kgBKSClUB2kpLQmlbIFLEAdDUiYHEiK1CqnjQPB4fBgWLY/mIIf5v3SRnxh7d++QgHChAkTJkyYMGHChD0BWywvYB1g0zoAiw2wCYBN2Mv7442bFHYXBpIkZ0+S3JAfIgB4kjMcOfvt0+de4t6EPR3bs1AsI2ATHNNrE3ZDiEhyc/cmhd2DDZdX1jcCeBjzs30w+I/nfJuw/wXzG2yCo03+YWajY9KSf/Ntwl4BO7QkuRgA67AR2AdgHcF8CSC0VdqXuDdhz8JKVHpczn7740Neil57xLKV1DXDpWwHgSRCdET4/CFZSV/YkeFu5TICSVpCRJGR+q6spEes/PARAOCIwGwWyUCylmyH0chKOsRO1bLYOqBSVQPImEtrxffISvrCLmZBMolHsRxXCrAAFL32iTUep0YjSTJmT7Y2hBrHykr6wmpACqSiic99HDJ+ugSkJd1jZNyNfB9gNjrahKIvdZUq7Kvdm7C/wk5VNc/iU+Ip+UnpDZQJ94o1HidbRMmEEUpmwzm5ohqryEr6wk45TmrmlCB1BrLRHPUSxSV9Yo3HaZo5qUIf3VEvAbK+yOP0jPlWS8zsjVh+5Lp8nmNchzSjdN8mhd2EtZlwKBON1WiK0hRXJI/TM7aMxQ6WsbT8yEceif7FhzWFt7s2KewurOkJ15Zf2yKuUYvikm6x82w8m2Jr7fa1fT9ZSeeY2bhbiUEAzuuAPEOwmtnkSZ3H6RoL8WjcADWVgf16H1C0ZDfFJX1il7nXoziffc9pKEkep2/Ml3Q4Zzu7kdHRpnQox1H1ko6x09zr0bMJzSBBVZpSPpGW9IZdz/ZhNy5jTIICrMNmIX7fsPz8MMDHGzYp7GbsaiU+wuABC7MjsI4G+IchvL/Vc1svcW/CnoVd/3OgDLo2vR3Nl3SOXc/2AecqLLOCBFJzr51ipv9oFCZMmDBhwoQJE/Yy2G/QQiF4MVpaFwAAAABJRU5ErkJggg==	6	f
+21	Table22	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC6klEQVR4nO2cW4rbQBBFT6UF8yntYJYi7Wy2Zi1lFhCQPg0SNx/9cMsOBGacCKerP4z1OEiNi3rcrraJL4z9x1cocMwxxxxzzDHHHHPMsSdgs6UBgE1rB7N12ATYxJ6vDye+pGNnYUiSdOklSRvSEiQtAL2kC0G69NvdfS8xN8eeju3JUczvGzYRFM9N7Ma4EN3N2S/p2DlY93hq7wRXE+ubgL0z+p/PeZpj/w0WBATZ1F/NbAiKvuQvPc2xF8CKL4khBli7zcbL3jEbiLXbojw71irtS8zNsWdhOSsth5d+++1HGp69toglK7mNC0GM2mCUxLgEMd7f5FbSFlYq3C0fLvnKuJDdyO2qW0mL2DHilEy1xJnkS7ZiNG4lDWJ1xEniWVLQsqpGUtqi0bgvaRGrNNWSmsKoLfuNJWQBFvDstU0s+5IFcmAJ2Y30dcJKjEfuS1rEaiuBUAqdFGdihqKlpLXuS1rGojHsZWE4yCbgJqTEkVXYl5qbY9/FSo0TqhAT65kqFC3JXrwSbhO7/fBUyQm5CE7aK3e5iltJW1hVCUM2hmQgkDParJd4XtImdvAlugmwoTKVnLi6XtIqdshLSEVN/pDus1f3JU1i1TpO5VBiclIVxqGKR24lzWHVOk5qedXBXoAkxSaZ3q2kQezgSxaqyqa+Sl4d9rykSezQ99oL5verpfP9AvNE+sbaUdrVXmJujj0dCzIb9ii7Rkn+snakHoLVzKZe8v04TWNRbF2CYO3idgsA7OOzI1c7u5WS55Xm5ti3sYe+17q/pKSwpQPWFfqmsVS7wDykDVvSEmRT3JRTnMxw5ks6dhJ26HstazZp6TfoIK1l+cR9iWPsxvy+IelqsHbYR6yOr76b3LE0+iS22hSrnd2gv5p9fL6pdNif/ZKO/VPsYW/f+NltsHYb87BgEDZjHdA8YK6XtIk97u3jtikn5LZpyJu4PC9pETP9+Z7H4f/R6JhjjjnmmGOOOebYGdgvSKcgD0OBml4AAAAASUVORK5CYII=	6	f
+22	Table1	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAACs0lEQVR4nO2cTa6jMBCEq8dIWZIbvKPAzd7V4CjvACOZZSRQzcJuY5JoFm8ygzIuL6Lw8wlQWu3qchMjvjG2H9+hAGHChAkTJkyYMGHCXoDNlgcAwMalA2brYCMAG7H58euJNynsLAwkSU49SXIFGQPJCAA9yQmBnPr17ry3eDZhL8e2nCjmjxU2IjDtG7EZhoiUbs6+SWHnYN2znZw/bkYsFwLYOkP/8zVXE/bfYJvZiEAb+5uZXQNTLvlLVxP2BljJJWmKAUoGAZYriKVbkz071C7tWzybsFdhrkrL5tSvTz/ykHptEctRso9jUYMhBmK4P0lR0hZWKtzVNyOQUssQ4WlkP6ooaRHzHz4CnjdyWKQA2ffloFGUNIgdZ5y12nRXDdlpS0GjXNIiVtRrIICQA2Tg6nkjBtcqAKRe28R2qVFKGZereXYpqQW7jlWUtIXVugQoE0vM80xSKIxZ1iqXtI2l2NgMw1cHAIE2wqudfbgL+1bPJuxPsYMu6fM8k3NJVfzkeFEl3CZW65IUEayL4Oy9HmJIUdIcVvWNAF7o5AABkK0S90ukS9rEqomlWswhSy7BLlzll7SKHXrQvKjxD/JevSqXNIk9itTiyxeTbffcFCVtYs9ziU8s+ZyhNMRKvTaJ1ep1iPA0clwEnlCSjHRJi9ixN56V91rrEv8mv6RN7FAJF82aS57dL0E6IF3SJvabXrUJuTE6ZZrc26goaRB76HvdXdi00HdoStKM0zbWe1Ez26WsBAemd0FTEbx0wHw98yaFnYQd+l7vNMi+epNOdftEuUQYvEWavBmwdLDPZJXc9Da5sDx60uwK2IhAMm4G9Dezz68LvVvp9JsU9k+xp/854NZa6WOM6i9pGnt8tw9lERihtBQg2a7yXtvETP/RKEyYMGHChAkTJuxtsF9962nagYuPxgAAAABJRU5ErkJggg==	7	f
+19	Table99	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC4klEQVR4nO2cTW7bMBBG31QCsqSBHiBHkW6QI/Vq0lFygADU0oCE6WKGEu1kFbhVXQ5XJuUHUfBgfj6OLMo3xvbjOxQEFlhggQUWWGCBBRbYA7BZfMDSI+PSwyw9MgIyspXrlxM3GdhZGKqqqlNSVdUV1dypagZIqjrRqU5pvfveUzxbYA/HNncU8wVkpFNbG9mEIWPu5uxNBnYO1n9aSR+icBVleVFg64X08Zi7BfbfYJ2KXDqVMV1F5NKp+ZI/dLfAngDbfYmFGGDpV4WtZxZQnwJDrdI+xbMF9mhsERGRHkhXYb6ATmmF+dWnVuKMp24ysJMwr12OMdEppBUGVWXInTLcfylqnLawvcJdyzRTffILx9Wwkhax8sNnKH7DzcIM5FgbMoRe0iZ2E3EyRVVT1aKqlbWpRKGwkuawykqAzgRYBl2L38hdEWABs5ywktawI9XgMBB3I6n2M8CRx4aVtIXVecnuS444YxmKhyIIX9Imdp+X2Bhy5wFourWS8CVNYqUS5ihg1EXWoSp+KP4lrKRF7CYvyeyJqxfB5ktcaTtylbCStrCqbwQ/zClJ6gSezO56SeQlbWKV9uq1Lp3Vv+5LOBLX0EuaxzymgPULAPOr6/Lex7j01qN04iYDOwe7rYQ9hbWDPi+MtZwA7slJ+JLWsDriaHWO4xmtjWFviI3stUnstqNxE53F+pHsghXFswDz21X2rrWneLbAHoXVNc6gqvf1zET9KfSSNrGb/pK0B5sM1UsWE1By27CSBrEve9UqLe3oKrG1sJIWsUqh92n2NT/ou2lKiojTNrYXNaaILL0VNTLaSzmdhl7SMHafl5QjHOAQSCZ8Gr6kTezzu33mPBRgE1j6VYb8c2V++xBI+YRNBvbPYWk1SV5GO9HZxFT7X+8vh0Z79iYD+6vYl/854F1Iae9jzNFf0jT2qcaZoMpLSksB5SWusJIWMYn/aAwssMACCyywwAIL7Gmw3wsEQyzh06CyAAAAAElFTkSuQmCC	6	f
+23	Table 2	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAa4AAAGuAQAAAADgjt83AAAC0UlEQVR4nO2cTW6kMBBGX42RsnTfIEeBm+Vq5ig5QCSzRALVLPybdFZJj1qMy4tWG3gCpFL5q882ovygnX9+QoFhhhlmmGGGGWaYYYY9AFslN9gmZNkmWGVCFkAWznL+9sSHNOxZGKqqqsGrqupB/okAXlUDTjX448t1l3g3wx6OnTlRrDeQBafp2MIpzJGUbp79kIY9B5vujmwTur7uomwvCpyT4D8eczfD/hfMHwBOZfG7iNycplzyb+5m2BWwmkvSEANsLypzPCdWAWWbjmTPzr1Le4l3M+xRWFGltRv88e1PbqZeR8RylLQWcAqlqGGOTpm/XmRRMhZWK9yjdGM5M0dKGmlnLUpGxPoRJ+WNCCmXBH+UY3rUoLEoGRDr3bKQumWwoR2L2VorY49FyVhYGUSiU8AlA5ZZj5I3oisGLGDqdUysSQ16W8Q3Nz43oOlYi5KxsD5KahzkE7FWO5F+bseiZGRsjqewiohqdCoL0IyUcsnD7mbYdbCuxtHgi2ZNyUPzv1zeYJXwqFg34uSI0L4Izt5rctqaVrEoGQvrKmEowZBEagCyVdK0rUXJiFjnvRYJW4RryiU04Wp+yahY1SWuM02gDTFfLrdcMjR2CnCKBr9L7m4TZexp4fPUhzTsOdineRxVbUKkDUC5m8Ss5ZIBsV69ZjMke2n9WcrssOmSIbHP6lWz2RqAXpeUf+aXDI45FbmdQrLpI2jYJnLQbCKyeFXbjzM0Nse6QADSdgsA5O19ouSSU2rJc6V3M+zX2N26135mr0rYugLWRpyhsVy7wPqqdSbYadoLmhTtNrUkc6l3M+y32Kd1r024fmutObVcYlhrs+6iqnveXP6WrJLddpMPit3vAPUR1ltUmYNT2G4Cfhfm9xfzXgfF7r85UCb60uxwVxhjfsmo2P3ePtqmHFeXFFD9e4uSATGxbzQaZphhhhlmmGGGGXYZ7C9xcR+SPvx3uQAAAABJRU5ErkJggg==	7	f
+\.
+
+
+--
+-- TOC entry 4492 (class 0 OID 25604)
+-- Dependencies: 217
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: qr-agent
+--
+
+COPY public.users (id, role, email, phone, password_hash, otp_expiry, created_at, is_active, organization_id) FROM stdin;
+1	superadmin	afnan@superadmin.com	\N	scrypt:32768:8:1$ZxPfwGAmP12LGI4t$a0bf6b32c89254c004486c0547a81362ddcafab5a7f765136d973d6811fc21f3fcb451fd396e31b8e46b8043bedcc9260da3e5378e3dd9b0cee8ce3601f47df8	\N	2025-05-14 10:12:03.084881	t	\N
+2	superadmin	abhay@superadmin.com	\N	scrypt:32768:8:1$q4xhRZproE71FAdY$7535700cacc06fd62be6ce484aaa5690d67f4160a62b20d54839db9018017257181a46490810c6c38009204a8011bc42dfe4b3124717bddedef81291e7f0657e	\N	2025-05-14 10:12:03.084881	t	\N
+3	superadmin	superadmin@example.com	\N	scrypt:32768:8:1$R8HcalZmpcOE0pgO$f029f74a9c993d3afb4a27702b9185c544c857e55a39aeaad274d53c9dfcd6bf2bda4bd118680f2558758536901a6f27093cac71d80c155406a4e4ed64f6383b	\N	2025-05-14 10:12:03.084881	t	\N
+4	org_admin	manager@citrus.com	\N	scrypt:32768:8:1$u5PcYCYVUCNP6YvY$dae53458dcb7876ee317d0c3721d60d33c5064f9f1b1c7136934d5739f814c7195faf978a48d4b509d292a0afd99441208047bd5d15daccc260209f2bf809415	\N	2025-05-14 10:51:32.441251	t	\N
+6	staff	kitchen@citrus.com	\N	scrypt:32768:8:1$lEJNSd9Rvv1eTww4$867620c43c18e6b5fc9ad2dcd8bacfedb514da8a45d1102b30ccd8768e635377c44d350dbe7ce658d7c42b57ad6529f375b36938481998b1773bac74cbbccea7	\N	2025-05-15 10:23:47.742135	t	1
+7	org_admin	abhay@grimm.com	\N	scrypt:32768:8:1$BuwP2EHIZlTWpGVv$b1dc316af095f69f99d9008bf14906b354194ca6139efe709dc9624a45c6a4486a669cad4ab61aab9f39de400f3414c6be7bce384cac609ff43bde0694731c04	\N	2025-05-15 10:35:45.844137	t	\N
+8	org_admin	abhay@afourd.com	\N	scrypt:32768:8:1$1ga7SMIMaurgdOOA$d4ab3aac37aede4b808dce44f588b80767dcc56072da9fdef061ffdab4d60b3539a5c3a2aee38465bbdef364b844538fd170908cdf3c94015cf292373c63e44a	\N	2025-05-15 11:02:17.646466	t	\N
+9	org_admin	admin@sricafe.com	\N	scrypt:32768:8:1$Uv0DochNmNmBp5TS$c5fc115ea5dbf96849098eab9310b3eae9ca041ae384ca6a3500c59ad9eed9cf5086d1f78e472b4d3a68cb3457176309c518711788514cc0178db9fdbbb67139	\N	2025-05-19 12:14:42.658626	t	\N
+10	org_admin	admin@royalcafe.com	\N	scrypt:32768:8:1$hi0XWqGVLE4nkMS2$60666fd4b1434eeb382334847acae7bf62f12e6b33d8c32d3be27d18eb6177681b72a0dc736e8827a8bdeaa4b12b1f12ba5f19c3c20358dd2c5722efea6ec338	\N	2025-05-20 06:39:45.689869	t	\N
+11	staff	prep@citrus.com	\N	scrypt:32768:8:1$OQnTiMOMA0X4ygPC$fdc630cd6031bc8d141b2bbc8c4a75c33c7a5cc8a57edddc24bf304094904335c85b69393309dca8756b87eb0e1989327e3a8adce729a20e8c2d219465e21f52	\N	2025-05-21 06:35:56.201939	t	1
+12	staff	receptionist@citrus.com	\N	scrypt:32768:8:1$kakPOBtDucnszQYj$6cbfef2ee48e54a5d8c8b1b4a3d3b8aa537b8e95601bbfc99468d0d7430683c10153d23bcadc5528f8105200f6d5d0bb0748b0f44c554c10caa287f5987bf36b	\N	2025-05-21 06:45:52.270158	t	1
+13	staff	staff@org.com	\N	scrypt:32768:8:1$LIWXd4fTq02m09xg$4dfcf6f27e9df407f33a9d13fcb0ec02c746cda8c51fd54a91e0f332de9ef4bac17482e7246879a6ac78ec7bf125073a93665fbba13ec67459c1d9d651b193d4	\N	2025-05-21 08:18:33.975796	t	3
+14	org_admin	bakes@admin.com	\N	scrypt:32768:8:1$9TsKuEKFXCzggSKk$e1ee1b5db2811b3e287a445891733477d0d22113fc98608c623edccc4591a529e36aa358debb78bf2fe87024782bd43b3d8bb93c9b256c04a4a714694514a87f	\N	2025-05-22 06:29:50.886678	t	\N
+15	staff	test1@staff.com	\N	scrypt:32768:8:1$V9n0vWt9IjxF0wY0$f4bd3056a22284b74c6086312f1dee1c358c072973a9c50fe8624f5d48bb7377626c90b584643bb09ecdbbc7457fce11f58e0fbb2f3cef1b46a66741b8a28330	\N	2025-05-22 07:17:00.092318	t	6
+16	org_admin	admin@citrus.com	\N	scrypt:32768:8:1$Y9aq71eRjCU8UFUz$517655b55c0609c39e246858bba02ba3ceb6cef85c43c74957673a3d4f38fabd3b4a9304edc67fbf8bb5542670e9f434aecacf0c1ecf190f56223ead768ac342	\N	2025-06-02 05:27:16.842818	t	\N
+17	staff	staff@citrus.com	\N	scrypt:32768:8:1$I8FmEk3aNTeu4p6r$fe0b62524eea456ba39011e7234e32547184a1a8efbd7a1618b839f6ddaff5ff4ef686cb9e57cada174b115c0358e438a1c4981334587c30cd70b7911670f0ef	\N	2025-06-02 05:37:03.337366	t	7
+\.
+
+
+--
+-- TOC entry 4536 (class 0 OID 0)
+-- Dependencies: 218
+-- Name: customers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.customers_id_seq', 3, true);
+
+
+--
+-- TOC entry 4537 (class 0 OID 0)
+-- Dependencies: 234
+-- Name: feedbacks_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.feedbacks_id_seq', 1, false);
+
+
+--
+-- TOC entry 4538 (class 0 OID 0)
+-- Dependencies: 240
+-- Name: group_members_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.group_members_id_seq', 71, true);
+
+
+--
+-- TOC entry 4539 (class 0 OID 0)
+-- Dependencies: 238
+-- Name: groups_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.groups_id_seq', 43, true);
+
+
+--
+-- TOC entry 4540 (class 0 OID 0)
+-- Dependencies: 226
+-- Name: kitchen_stations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.kitchen_stations_id_seq', 1, false);
+
+
+--
+-- TOC entry 4541 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: menu_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.menu_items_id_seq', 35, true);
+
+
+--
+-- TOC entry 4542 (class 0 OID 0)
+-- Dependencies: 230
+-- Name: order_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.order_items_id_seq', 73, true);
+
+
+--
+-- TOC entry 4543 (class 0 OID 0)
+-- Dependencies: 228
+-- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.orders_id_seq', 25, true);
+
+
+--
+-- TOC entry 4544 (class 0 OID 0)
+-- Dependencies: 220
+-- Name: organizations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.organizations_id_seq', 7, true);
+
+
+--
+-- TOC entry 4545 (class 0 OID 0)
+-- Dependencies: 232
+-- Name: payments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.payments_id_seq', 1, false);
+
+
+--
+-- TOC entry 4546 (class 0 OID 0)
+-- Dependencies: 236
+-- Name: status_changes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.status_changes_id_seq', 5, true);
+
+
+--
+-- TOC entry 4547 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: tables_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.tables_id_seq', 23, true);
+
+
+--
+-- TOC entry 4548 (class 0 OID 0)
+-- Dependencies: 216
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: qr-agent
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 17, true);
+
+
+--
+-- TOC entry 4290 (class 2606 OID 25043)
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.alembic_version
+    ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- TOC entry 4298 (class 2606 OID 25622)
+-- Name: customers customers_phone_key; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.customers
+    ADD CONSTRAINT customers_phone_key UNIQUE (phone);
+
+
+--
+-- TOC entry 4300 (class 2606 OID 25620)
+-- Name: customers customers_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.customers
+    ADD CONSTRAINT customers_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4316 (class 2606 OID 25738)
+-- Name: feedbacks feedbacks_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.feedbacks
+    ADD CONSTRAINT feedbacks_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4324 (class 2606 OID 25795)
+-- Name: group_members group_members_member_token_key; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.group_members
+    ADD CONSTRAINT group_members_member_token_key UNIQUE (member_token);
+
+
+--
+-- TOC entry 4326 (class 2606 OID 25793)
+-- Name: group_members group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.group_members
+    ADD CONSTRAINT group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4320 (class 2606 OID 25771)
+-- Name: groups groups_join_code_key; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_join_code_key UNIQUE (join_code);
+
+
+--
+-- TOC entry 4322 (class 2606 OID 25769)
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4308 (class 2606 OID 25669)
+-- Name: kitchen_stations kitchen_stations_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.kitchen_stations
+    ADD CONSTRAINT kitchen_stations_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4304 (class 2606 OID 25643)
+-- Name: menu_items menu_items_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.menu_items
+    ADD CONSTRAINT menu_items_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4312 (class 2606 OID 25707)
+-- Name: order_items order_items_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4310 (class 2606 OID 25683)
+-- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4302 (class 2606 OID 25629)
+-- Name: organizations organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT organizations_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4314 (class 2606 OID 25724)
+-- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4318 (class 2606 OID 25752)
+-- Name: status_changes status_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.status_changes
+    ADD CONSTRAINT status_changes_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4306 (class 2606 OID 25657)
+-- Name: tables tables_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.tables
+    ADD CONSTRAINT tables_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4292 (class 2606 OID 25611)
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- TOC entry 4294 (class 2606 OID 25613)
+-- Name: users users_phone_key; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_phone_key UNIQUE (phone);
+
+
+--
+-- TOC entry 4296 (class 2606 OID 25609)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4340 (class 2606 OID 25739)
+-- Name: feedbacks feedbacks_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.feedbacks
+    ADD CONSTRAINT feedbacks_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- TOC entry 4346 (class 2606 OID 25796)
+-- Name: group_members group_members_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.group_members
+    ADD CONSTRAINT group_members_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- TOC entry 4343 (class 2606 OID 25772)
+-- Name: groups groups_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.customers(id);
+
+
+--
+-- TOC entry 4344 (class 2606 OID 25782)
+-- Name: groups groups_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- TOC entry 4345 (class 2606 OID 25777)
+-- Name: groups groups_table_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_table_id_fkey FOREIGN KEY (table_id) REFERENCES public.tables(id);
+
+
+--
+-- TOC entry 4331 (class 2606 OID 25670)
+-- Name: kitchen_stations kitchen_stations_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.kitchen_stations
+    ADD CONSTRAINT kitchen_stations_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- TOC entry 4329 (class 2606 OID 25644)
+-- Name: menu_items menu_items_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.menu_items
+    ADD CONSTRAINT menu_items_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- TOC entry 4336 (class 2606 OID 25803)
+-- Name: order_items order_items_member_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_member_id_fkey FOREIGN KEY (member_id) REFERENCES public.group_members(id);
+
+
+--
+-- TOC entry 4337 (class 2606 OID 25713)
+-- Name: order_items order_items_menu_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_menu_item_id_fkey FOREIGN KEY (menu_item_id) REFERENCES public.menu_items(id);
+
+
+--
+-- TOC entry 4338 (class 2606 OID 25708)
+-- Name: order_items order_items_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- TOC entry 4332 (class 2606 OID 25684)
+-- Name: orders orders_customer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id);
+
+
+--
+-- TOC entry 4333 (class 2606 OID 25808)
+-- Name: orders orders_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- TOC entry 4334 (class 2606 OID 25694)
+-- Name: orders orders_kitchen_station_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_kitchen_station_id_fkey FOREIGN KEY (kitchen_station_id) REFERENCES public.kitchen_stations(id);
+
+
+--
+-- TOC entry 4335 (class 2606 OID 25689)
+-- Name: orders orders_table_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_table_id_fkey FOREIGN KEY (table_id) REFERENCES public.tables(id);
+
+
+--
+-- TOC entry 4328 (class 2606 OID 25630)
+-- Name: organizations organizations_admin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT organizations_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES public.users(id);
+
+
+--
+-- TOC entry 4339 (class 2606 OID 25725)
+-- Name: payments payments_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- TOC entry 4341 (class 2606 OID 25758)
+-- Name: status_changes status_changes_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.status_changes
+    ADD CONSTRAINT status_changes_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.users(id);
+
+
+--
+-- TOC entry 4342 (class 2606 OID 25753)
+-- Name: status_changes status_changes_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.status_changes
+    ADD CONSTRAINT status_changes_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id);
+
+
+--
+-- TOC entry 4330 (class 2606 OID 25658)
+-- Name: tables tables_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.tables
+    ADD CONSTRAINT tables_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- TOC entry 4327 (class 2606 OID 25813)
+-- Name: users users_organization_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: qr-agent
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- TOC entry 2103 (class 826 OID 24913)
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: avnadmin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE avnadmin IN SCHEMA public GRANT ALL ON SEQUENCES TO "qr-agent";
+
+
+--
+-- TOC entry 2102 (class 826 OID 24912)
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: avnadmin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE avnadmin IN SCHEMA public GRANT ALL ON TABLES TO "qr-agent";
+
+
+-- Completed on 2025-06-11 11:57:09
+
+--
+-- PostgreSQL database dump complete
+--
+
