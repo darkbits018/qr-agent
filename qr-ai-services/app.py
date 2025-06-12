@@ -11,6 +11,7 @@ from flask_jwt_extended import (
     get_jwt
 )
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -28,6 +29,7 @@ def create_app():
 
 
 app = create_app()
+CORS(app)
 jwt = JWTManager(app)
 
 

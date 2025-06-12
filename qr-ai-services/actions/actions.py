@@ -2,9 +2,9 @@ from rasa_sdk import Action
 from rasa_sdk.executor import CollectingDispatcher
 from typing import Any, Text, Dict, List
 import requests
+import os
 
-BACKEND_URL = "https://qr-agent.onrender.com"
-
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://qr-agent.onrender.com")
 
 class ActionAddToCart(Action):
     def name(self) -> Text:

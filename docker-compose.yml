@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  qr-agent-backend:
+    build:
+      context: ./qr-agent-backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      DB_URI: ${DB_URI}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+    restart: unless-stopped
+    volumes:
+      - ./qr-agent-backend:/app
+
+  rasa-server:
+    build:
+      context: ./qr-ai-services
+      dockerfile: Dockerfile.rasa
+    depends_on:
+      - qr-agent-backend
+    ports:
+      - "5001:5001"
+    environment:
+      BACKEND_URL: http://qr-agent-backend:5000
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    restart: unless-stopped
+    volumes:
+      - ./qr-ai-services:/app
+
+  action-server:
+    build:
+      context: ./qr-ai-services
+      dockerfile: Dockerfile.actions
+    depends_on:
+      - qr-agent-backend
+    ports:
+      - "5055:5055"
+    environment:
+      BACKEND_URL: http://qr-agent-backend:5000
+    restart: unless-stopped
+    volumes:
+      - ./qr-ai-services:/app
+
+  flask-api:
+    build:
+      context: ./qr-ai-services
+      dockerfile: Dockerfile.flask
+    depends_on:
+      - rasa-server
+      - action-server
+    ports:
+      - "5002:5002"
+    restart: unless-stopped
+    volumes:
+      - ./qr-ai-services:/app
+
+volumes:
+  postgres_data:
