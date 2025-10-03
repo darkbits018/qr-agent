@@ -1,0 +1,63 @@
+/* Superadmin Theme Colors */
+:root {
+  --sa-primary: #1a365d;
+  --sa-primary-light: #2c5282;
+  --sa-primary-dark: #1a365d;
+  --sa-accent: #e2e8f0;
+  --sa-text-primary: #1a202c;
+  --sa-text-secondary: #4a5568;
+  --sa-background: #f7fafc;
+  --sa-surface: #ffffff;
+  --sa-border: #e2e8f0;
+  --sa-success: #48bb78;
+  --sa-warning: #ed8936;
+  --sa-error: #f56565;
+}
+
+/* Utility Classes */
+.sa-bg-primary { background-color: var(--sa-primary); }
+.sa-text-primary { color: var(--sa-primary); }
+.sa-border-primary { border-color: var(--sa-primary); }
+
+/* Layout */
+.sa-layout {
+  min-height: 100vh;
+  background-color: var(--sa-background);
+}
+
+/* Card Styles */
+.sa-card {
+  background-color: var(--sa-surface);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Elements */
+.sa-input {
+  border: 1px solid var(--sa-border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+}
+
+.sa-input:focus {
+  border-color: var(--sa-primary);
+  box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+}
+
+/* Button Styles */
+.sa-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.sa-button-primary {
+  background-color: var(--sa-primary);
+  color: white;
+}
+
+.sa-button-primary:hover {
+  background-color: var(--sa-primary-dark);
+}

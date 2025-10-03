@@ -1,0 +1,15 @@
+/* Kitchen Theme */
+:root {
+  --kt-primary: #38a169;
+  --kt-primary-light: #48bb78;
+  --kt-primary-dark: #2f855a;
+  --kt-accent: #f0fff4;
+  --kt-background: #f7fafc;
+  --kt-surface: #ffffff;
+  --kt-text-primary: #2d3748;
+  --kt-text-secondary: #718096;
+  --kt-border: #e2e8f0;
+  --kt-success: #48bb78;
+  --kt-warning: #ed8936;
+  --kt-error: #f56565;
+}
